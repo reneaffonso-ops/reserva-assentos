@@ -12,7 +12,7 @@
         
         <div class="instructions">
             <h2>Instruções</h2>
-            <p>Selecione a data desejada, clique no assento disponível (verde), preencha seus dados e confirme a reserva.</p>
+            <p>Selecione a data desejada, clique no assento disponível (verde), selecione seu setor e confirme.</p>
             <div class="legend">
                 <span class="available">Disponível</span>
                 <span class="occupied">Ocupado</span>
@@ -90,12 +90,13 @@
                 <p>Assento: <span id="selected-seat"></span></p>
                 <form id="reservation-form">
                     <label for="full-name">Nome Completo:</label>
-                    <input type="text" id="full-name" required>
+                    <input type="text" id="full-name" required placeholder="Digite seu nome">
                     
                     <label for="department">Setor:</label>
+                    <!-- MUDANÇA AQUI: Input virou Select -->
                     <select id="department" required>
-                    <option value="">Selecione seu setor...</option>
-</select>
+                        <option value="">Selecione o setor...</option>
+                    </select>
                     
                     <button type="submit">Confirmar Reserva</button>
                 </form>

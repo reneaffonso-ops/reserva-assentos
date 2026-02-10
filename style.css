@@ -50,20 +50,9 @@ h1 {
     font-size: 0.9em;
 }
 
-.legend .available {
-    background: #4caf50;
-    color: white;
-}
-
-.legend .occupied {
-    background: #f44336;
-    color: white;
-}
-
-.legend .selected {
-    background: #2196f3;
-    color: white;
-}
+.legend .available { background: #4caf50; color: white; }
+.legend .occupied { background: #f44336; color: white; }
+.legend .selected { background: #2196f3; color: white; }
 
 .date-selector {
     margin-bottom: 30px;
@@ -103,7 +92,7 @@ h1 {
 
 .row {
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* Alinha ao topo para suportar multilinhas */
     gap: 10px;
 }
 
@@ -111,13 +100,19 @@ h1 {
     min-width: 80px;
     font-weight: bold;
     color: #666;
+    margin-top: 15px; /* Ajuste visual para centralizar com o bloco de assentos */
 }
 
+/* CORREÇÃO DAS BAIAS: Coluna Vertical */
 .seats {
     display: flex;
-    flex-direction: column; /* ESSENCIAL: Faz as fileiras ficarem uma em cima da outra */
-    gap: 10px;              /* Espaço vertical entre a fileira de cima e a de baixo */
-    align-items: flex-start; /* Alinha as fileiras à esquerda (ou use center para centralizar) */
+    flex-direction: column; /* Importante: Empilha as fileiras */
+    gap: 8px;
+}
+
+.seat-row {
+    display: flex; /* Mantém os assentos da mesma fileira lado a lado */
+    gap: 8px;
 }
 
 .seat {
@@ -190,13 +185,9 @@ h1 {
     cursor: pointer;
 }
 
-.close:hover {
-    color: #000;
-}
+.close:hover { color: #000; }
 
-#reservation-form {
-    margin-top: 20px;
-}
+#reservation-form { margin-top: 20px; }
 
 #reservation-form label {
     display: block;
@@ -205,15 +196,16 @@ h1 {
     color: #555;
 }
 
+/* INPUT E SELECT COM MESMO ESTILO */
 #reservation-form input,
-#reservation-form select { 
+#reservation-form select {
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 1em;
-    background-color: white; /* Garante fundo branco */
+    background-color: white;
 }
 
 #reservation-form button {
@@ -229,21 +221,5 @@ h1 {
     transition: background 0.3s;
 }
 
-#reservation-form button:hover {
-    background: #45a049;
-}
-
-#selected-seat {
-    font-weight: bold;
-    color: #2196f3;
-}
-
-/* Estilo para múltiplas fileiras de assentos */
-.seat-row {
-    display: flex;
-    gap: 8px;
-}
-
-.seat-row:last-child {
-    margin-bottom: 0;
-}
+#reservation-form button:hover { background: #45a049; }
+#selected-seat { font-weight: bold; color: #2196f3; }

@@ -1,4 +1,4 @@
-// CONFIGURAÇÃO - Substitua pela URL do Google Apps Script Web App
+// CONFIGURAÇÃO - Substitua pela URL do Google Apps Script Web App se mudou
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzne0CvsiNNKKo9l_ckTPZy2UzLBXiQt055fgIt5Dsa_1Hp-ktoeb3UzrJyED0pV9TRA/exec';
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTngB6cIDUnYFLX_vwoXM1OufYfQknlAmUFiUsPi-c4vid7XOq_UmbOEQWNGszQ0TgSi1sZFTHYLC1N/pub?gid=0&single=true&output=csv';
 
@@ -7,14 +7,13 @@ const seatingConfig = {
     Aquario: { baias: 4, assentosPorBaia: 6, fileiras: 2 },
     Salao: { baias: 3, assentosPorBaia: 6, fileiras: 2 },
     Gouvea: { baias: 2, assentosPorBaia: 6, fileiras: 2 }
+};
 
 // Configuração dos Setores por Local
 const departmentsByLocation = {
     'Aquario': ['PTS', 'Centurion', 'BTG'],
     'Salao':   ['CEP', 'Lazer', 'Eventos', 'Supplier', 'ICs'],
     'Gouvea':  ['Financeiro', 'C&P', 'MKT & Com', 'TI', 'Projetos', 'Qualidade']
-
-};
 };
 
 let reservations = [];
@@ -87,14 +86,14 @@ function updateSeatsStatus() {
     });
 }
 
-// Selecionar assento e carregar menu correto
+// Selecionar assento
 function selectSeat(seat) {
     if (seat.classList.contains('occupied')) {
         alert('Este assento já está ocupado!');
         return;
     }
     
-    // Remover seleção anterior visual
+    // Remover seleção anterior
     document.querySelectorAll('.seat.selected').forEach(s => {
         if (s.classList.contains('occupied')) {
             s.className = 'seat occupied';
@@ -103,12 +102,12 @@ function selectSeat(seat) {
         }
     });
     
-    // Marcar novo assento
+    // Selecionar novo assento
     seat.classList.add('selected');
     selectedSeat = seat;
     
-    // --- LÓGICA DO MENU DINÂMICO (NOVO) ---
-    const location = seat.dataset.location; // Pega o local (Aquario, Salao, Gouvea)
+    // --- LÓGICA DO MENU DINÂMICO ---
+    const location = seat.dataset.location;
     const departmentSelect = document.getElementById('department');
     
     // Limpar opções antigas
@@ -123,20 +122,16 @@ function selectSeat(seat) {
             departmentSelect.appendChild(option);
         });
     }
-    // ---------------------------------------
     
-    // Preencher textos do Modal
+    // Mostrar modal
     const modal = document.getElementById('reservation-modal');
     const locationNames = {
         'Aquario': 'Aquário',
         'Salao': 'Salão',
         'Gouvea': 'Lado Gouvêa'
     };
-    
     const seatInfo = `${locationNames[location]} - Baia ${seat.dataset.row} - Assento ${seat.dataset.number}`;
     document.getElementById('selected-seat').textContent = seatInfo;
-    
-    // Abrir modal
     modal.style.display = 'block';
 }
 
@@ -157,6 +152,11 @@ document.getElementById('reservation-form').addEventListener('submit', async (e)
     const name = document.getElementById('full-name').value;
     const department = document.getElementById('department').value;
     
+    if (!department) {
+        alert('Por favor, selecione um setor.');
+        return;
+    }
+
     const reservation = {
         data: date,
         nome: name,
@@ -203,7 +203,6 @@ document.getElementById('reservation-form').addEventListener('submit', async (e)
 // Salvar reserva no Google Sheets
 async function saveReservation(reservation) {
     try {
-        // Criar FormData
         const formData = new FormData();
         formData.append('data', reservation.data);
         formData.append('nome', reservation.nome);
@@ -213,17 +212,13 @@ async function saveReservation(reservation) {
         formData.append('assento', reservation.assento);
         formData.append('timestamp', reservation.timestamp);
         
-        // Enviar com redirect: 'follow' para permitir redirecionamento do Google
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: formData,
             redirect: 'follow'
         });
         
-        // Aguardar para garantir que salvou
         await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Recarregar reservas para confirmar
         await loadReservations();
         
         return true;
@@ -261,12 +256,8 @@ async function loadReservations() {
     }
 }
 
-// Event listener para mudança de data
 document.getElementById('reservation-date').addEventListener('change', updateSeatsStatus);
-
-// Recarregar reservas periodicamente
 setInterval(loadReservations, 30000);
 
-// Inicializar
 generateSeats();
 loadReservations();
