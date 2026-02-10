@@ -1,28 +1,34 @@
-// CONFIGURAÇÃO - Verifique se a URL está correta
+// CONFIGURAÇÃO - Mantenha suas URLs aqui
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzne0CvsiNNKKo9l_ckTPZy2UzLBXiQt055fgIt5Dsa_1Hp-ktoeb3UzrJyED0pV9TRA/exec';
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTngB6cIDUnYFLX_vwoXM1OufYfQknlAmUFiUsPi-c4vid7XOq_UmbOEQWNGszQ0TgSi1sZFTHYLC1N/pub?gid=0&single=true&output=csv';
 
-// Configuração dos assentos
+// Configurações
 const seatingConfig = {
     Aquario: { baias: 4, assentosPorBaia: 6, fileiras: 2 },
     Salao: { baias: 3, assentosPorBaia: 6, fileiras: 2 },
     Gouvea: { baias: 2, assentosPorBaia: 6, fileiras: 2 }
 };
 
-// Configuração dos Setores (Chaves devem bater com data-location no HTML)
 const departmentsByLocation = {
     'Aquario': ['PTS', 'Centurion', 'BTG'],
     'Salao':   ['CEP', 'Lazer', 'Eventos', 'Supplier', 'ICs'],
     'Gouvea':  ['Financeiro', 'C&P', 'MKT & Com', 'TI', 'Projetos', 'Qualidade']
 };
 
-let reservations = [];
+let allReservations = []; // Lista combinada (Servidor + Local)
 let selectedSeat = null;
 
-// Inicializar data
+// Inicializar
 document.getElementById('reservation-date').valueAsDate = new Date();
+generateSeats();
+loadReservations();
 
-// Gerar assentos
+// Eventos
+document.getElementById('reservation-date').addEventListener('change', updateSeatsStatus);
+document.querySelector('.close').addEventListener('click', closeModal);
+setInterval(loadReservations, 30000); // Atualiza a cada 30s
+
+// Gerar layout visual
 function generateSeats() {
     document.querySelectorAll('.row').forEach(row => {
         const location = row.dataset.location;
@@ -46,6 +52,7 @@ function generateSeats() {
                 seat.dataset.location = location;
                 seat.dataset.row = rowNum;
                 seat.dataset.number = i;
+                // ID Único para comparação
                 seat.dataset.id = `${location}-${rowNum}-${i}`;
                 
                 seat.addEventListener('click', () => selectSeat(seat));
@@ -56,17 +63,20 @@ function generateSeats() {
     });
 }
 
+// Atualizar cores dos assentos
 function updateSeatsStatus() {
     const selectedDate = document.getElementById('reservation-date').value;
     
     document.querySelectorAll('.seat').forEach(seat => {
         const seatId = seat.dataset.id;
-        const reservation = reservations.find(r => 
+        
+        // Procura se existe reserva para esta Data E este Assento
+        const reservation = allReservations.find(r => 
             r.data === selectedDate && 
             `${r.local}-${r.baia}-${r.assento}` === seatId
         );
         
-        // Reset classes
+        // Reset básico
         seat.className = 'seat';
         
         if (reservation) {
@@ -79,59 +89,38 @@ function updateSeatsStatus() {
     });
 }
 
-// LÓGICA DO MENU CORRIGIDA
+// Lógica de Seleção
 function selectSeat(seat) {
     if (seat.classList.contains('occupied')) {
-        alert('Este assento já está ocupado!');
+        alert('Assento ocupado por: ' + seat.title);
         return;
     }
     
-    // Remover seleção visual anterior
-    if (selectedSeat) {
-        // Volta o anterior para o estado correto (não necessariamente available se ele tiver mudado status)
-        selectedSeat.classList.remove('selected');
-    }
+    if (selectedSeat) selectedSeat.classList.remove('selected');
     
     seat.classList.add('selected');
     selectedSeat = seat;
     
-    const locationKey = seat.dataset.location;
-    const departmentSelect = document.getElementById('department');
+    // Configurar Menu
+    const location = seat.dataset.location;
+    const deptSelect = document.getElementById('department');
+    deptSelect.innerHTML = '<option value="">Selecione...</option>';
     
-    // Limpar e popular Select
-    departmentSelect.innerHTML = '<option value="">Selecione seu setor...</option>';
+    const options = departmentsByLocation[location] || [];
+    options.forEach(opt => {
+        const el = document.createElement('option');
+        el.value = opt;
+        el.textContent = opt;
+        deptSelect.appendChild(el);
+    });
     
-    // Debug para garantir que está achando a lista
-    console.log('Selecionado:', locationKey);
-    console.log('Opções:', departmentsByLocation[locationKey]);
-
-    const options = departmentsByLocation[locationKey];
-    if (options && options.length > 0) {
-        options.forEach(dept => {
-            const option = document.createElement('option');
-            option.value = dept;
-            option.textContent = dept;
-            departmentSelect.appendChild(option);
-        });
-    } else {
-        // Fallback caso não ache
-        const option = document.createElement('option');
-        option.textContent = "Opções não carregadas";
-        departmentSelect.appendChild(option);
-    }
-    
-    // Info do Modal
-    const modal = document.getElementById('reservation-modal');
+    // Configurar Modal
     const displayNames = { 'Aquario': 'Aquário', 'Salao': 'Salão', 'Gouvea': 'Lado Gouvêa' };
-    
     document.getElementById('selected-seat').textContent = 
-        `${displayNames[locationKey] || locationKey} - Baia ${seat.dataset.row} - Cadeira ${seat.dataset.number}`;
-    
-    modal.style.display = 'block';
+        `${displayNames[location]} - Baia ${seat.dataset.row} - Assento ${seat.dataset.number}`;
+        
+    document.getElementById('reservation-modal').style.display = 'block';
 }
-
-// Fechar modal
-document.querySelector('.close').addEventListener('click', closeModal);
 
 function closeModal() {
     document.getElementById('reservation-modal').style.display = 'none';
@@ -141,76 +130,108 @@ function closeModal() {
     }
 }
 
-// Submit
+// Envio do Formulário
 document.getElementById('reservation-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    const department = document.getElementById('department').value;
-    if (!department) {
-        alert('Por favor, selecione um setor válido.');
-        return;
-    }
-
-    const reservation = {
-        data: document.getElementById('reservation-date').value,
-        nome: document.getElementById('full-name').value,
-        setor: department,
-        local: selectedSeat.dataset.location,
-        baia: selectedSeat.dataset.row,
-        assento: selectedSeat.dataset.number,
-        timestamp: new Date().toISOString()
-    };
     
     const btn = e.target.querySelector('button');
     const originalText = btn.textContent;
     btn.textContent = 'Salvando...';
     btn.disabled = true;
-    
-    if (await saveReservation(reservation)) {
-        reservations.push(reservation);
-        updateSeatsStatus();
-        document.getElementById('reservation-modal').style.display = 'none';
-        document.getElementById('reservation-form').reset();
-        selectedSeat = null;
-        alert('Reserva realizada!');
-    } else {
-        alert('Erro ao salvar. Tente novamente.');
-    }
-    
-    btn.textContent = originalText;
-    btn.disabled = false;
-});
 
-async function saveReservation(reservation) {
     try {
+        const newReservation = {
+            data: document.getElementById('reservation-date').value,
+            nome: document.getElementById('full-name').value,
+            setor: document.getElementById('department').value,
+            local: selectedSeat.dataset.location,
+            baia: selectedSeat.dataset.row,
+            assento: selectedSeat.dataset.number,
+            timestamp: new Date().toISOString()
+        };
+
+        if (!newReservation.setor) throw new Error('Selecione um setor');
+
+        // 1. Salvar no Google Sheets
         const formData = new FormData();
-        Object.keys(reservation).forEach(key => formData.append(key, reservation[key]));
+        Object.keys(newReservation).forEach(k => formData.append(k, newReservation[k]));
         
-        await fetch(SCRIPT_URL, { method: 'POST', body: formData, redirect: 'follow' });
-        await new Promise(r => setTimeout(r, 1000)); // Delay segurança
-        return true;
+        await fetch(SCRIPT_URL, { method: 'POST', body: formData, redirect: 'follow' }); // Removed mode: 'no-cors' to verify status if possible, but 'follow' is safer for GAS redirects.
+
+        // 2. Salvar Localmente (Cache Temporário)
+        saveLocalReservation(newReservation);
+        
+        // 3. Atualizar Visual
+        alert('Reserva Confirmada!');
+        closeModal();
+        document.getElementById('reservation-form').reset();
+        
+        // Força recarga combinando dados
+        loadReservations();
+
     } catch (error) {
         console.error(error);
-        return false;
+        alert('Erro ao salvar. Tente novamente.');
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
     }
+});
+
+// --- SISTEMA DE CACHE E CARREGAMENTO ---
+
+// Salva no localStorage para persistência imediata
+function saveLocalReservation(res) {
+    const localData = JSON.parse(localStorage.getItem('my_reservations') || '[]');
+    localData.push(res);
+    localStorage.setItem('my_reservations', JSON.stringify(localData));
 }
 
+// Carrega dados do servidor (CSV) e mistura com local
 async function loadReservations() {
     try {
-        const res = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
-        const txt = await res.text();
-        const rows = txt.split('\n').slice(1);
+        // 1. Buscar CSV do Servidor
+        const response = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
+        const text = await response.text();
+        const rows = text.split('\n').slice(1); // Pular cabeçalho
         
-        reservations = rows.map(r => {
-            const c = r.split(',');
-            return { data: c[0], nome: c[1], setor: c[2], local: c[3], baia: c[4], assento: c[5] };
-        }).filter(r => r.data);
+        const serverReservations = rows.map(row => {
+            const c = row.split(',');
+            if (c.length < 6) return null;
+            return {
+                data: c[0],
+                nome: c[1],
+                setor: c[2],
+                local: c[3],
+                baia: c[4],     // Agora estamos lendo a Baia explicitamente
+                assento: c[5]
+            };
+        }).filter(r => r && r.data);
+
+        // 2. Buscar Dados Locais (O que acabamos de salvar)
+        const localData = JSON.parse(localStorage.getItem('my_reservations') || '[]');
+        
+        // 3. Combinar Listas (Prioridade para o Local se o servidor estiver atrasado)
+        // Se a reserva já estiver no servidor, removemos do local para limpar o cache
+        const cleanLocalData = localData.filter(localRes => {
+            const existsOnServer = serverReservations.some(serverRes => 
+                serverRes.data === localRes.data &&
+                serverRes.local === localRes.local &&
+                serverRes.baia === localRes.baia &&
+                serverRes.assento === localRes.assento
+            );
+            return !existsOnServer; // Mantém no local APENAS se ainda não apareceu no servidor
+        });
+
+        // Atualiza o localStorage limpo
+        localStorage.setItem('my_reservations', JSON.stringify(cleanLocalData));
+
+        // Lista Final = Servidor + Local (que ainda não caiu no servidor)
+        allReservations = [...serverReservations, ...cleanLocalData];
         
         updateSeatsStatus();
-    } catch (e) { console.error(e); }
+        
+    } catch (error) {
+        console.error("Erro ao atualizar:", error);
+    }
 }
-
-document.getElementById('reservation-date').addEventListener('change', updateSeatsStatus);
-setInterval(loadReservations, 30000);
-generateSeats();
-loadReservations();
