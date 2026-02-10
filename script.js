@@ -1,6 +1,6 @@
 // CONFIGURAÇÃO - Substitua pela URL do Google Apps Script Web App
-const SCRIPT_URL = https://script.google.com/macros/s/AKfycbxzne0CvsiNNKKo9l_ckTPZy2UzLBXiQt055fgIt5Dsa_1Hp-ktoeb3UzrJyED0pV9TRA/exec
-const SHEET_CSV_URL = https://docs.google.com/spreadsheets/d/e/2PACX-1vTngB6cIDUnYFLX_vwoXM1OufYfQknlAmUFiUsPi-c4vid7XOq_UmbOEQWNGszQ0TgSi1sZFTHYLC1N/pub?gid=0&single=true&output=csv;
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzne0CvsiNNKKo9l_ckTPZy2UzLBXiQt055fgIt5Dsa_1Hp-ktoeb3UzrJyED0pV9TRA/exec';
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTngB6cIDUnYFLX_vwoXM1OufYfQknlAmUFiUsPi-c4vid7XOq_UmbOEQWNGszQ0TgSi1sZFTHYLC1N/pub?gid=0&single=true&output=csv';
 
 // Configuração dos assentos
 const seatingConfig = {
@@ -22,6 +22,9 @@ function generateSeats() {
         const rowNum = parseInt(row.dataset.row);
         const seatsContainer = row.querySelector('.seats');
         const config = seatingConfig[location];
+        
+        // Limpar container
+        seatsContainer.innerHTML = '';
         
         // Criar duas fileiras de assentos
         for (let fileira = 1; fileira <= config.fileiras; fileira++) {
@@ -117,7 +120,7 @@ document.querySelector('.close').addEventListener('click', () => {
     }
 });
 
-// Submeter reserva usando formulário HTML (solução CORS)
+// Submeter reserva
 document.getElementById('reservation-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -142,7 +145,7 @@ document.getElementById('reservation-form').addEventListener('submit', async (e)
     submitButton.disabled = true;
     
     try {
-        // Salvar no Google Sheets usando FormData (evita CORS)
+        // Salvar no Google Sheets
         const success = await saveReservation(reservation);
         
         if (success) {
@@ -162,17 +165,16 @@ document.getElementById('reservation-form').addEventListener('submit', async (e)
     } catch (error) {
         console.error('Erro:', error);
         alert('Erro ao salvar reserva. Por favor, tente novamente.');
-        submitButton.disabled = false;
     } finally {
         submitButton.textContent = originalText;
         submitButton.disabled = false;
     }
 });
 
-// Salvar reserva no Google Sheets (usando FormData para evitar CORS)
+// Salvar reserva no Google Sheets
 async function saveReservation(reservation) {
     try {
-        // Criar FormData em vez de JSON para evitar preflight CORS
+        // Criar FormData
         const formData = new FormData();
         formData.append('data', reservation.data);
         formData.append('nome', reservation.nome);
@@ -182,15 +184,15 @@ async function saveReservation(reservation) {
         formData.append('assento', reservation.assento);
         formData.append('timestamp', reservation.timestamp);
         
+        // Enviar com redirect: 'follow' para permitir redirecionamento do Google
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: formData,
-            mode: 'no-cors' // Importante para evitar erro CORS
+            redirect: 'follow'
         });
         
-        // Com no-cors, não podemos ler a resposta, mas a requisição é enviada
-        // Aguardar um momento para garantir que salvou
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Aguardar para garantir que salvou
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Recarregar reservas para confirmar
         await loadReservations();
@@ -207,7 +209,7 @@ async function loadReservations() {
     try {
         const response = await fetch(SHEET_CSV_URL + '&t=' + new Date().getTime());
         const text = await response.text();
-        const rows = text.trim().split('\n').slice(1); // Remove cabeçalho
+        const rows = text.trim().split('\n').slice(1);
         
         reservations = rows
             .filter(row => row.trim())
@@ -222,7 +224,7 @@ async function loadReservations() {
                     assento: assento?.trim() 
                 };
             })
-            .filter(r => r.data); // Remove linhas vazias
+            .filter(r => r.data);
         
         updateSeatsStatus();
     } catch (error) {
@@ -234,7 +236,7 @@ async function loadReservations() {
 document.getElementById('reservation-date').addEventListener('change', updateSeatsStatus);
 
 // Recarregar reservas periodicamente
-setInterval(loadReservations, 30000); // A cada 30 segundos
+setInterval(loadReservations, 30000);
 
 // Inicializar
 generateSeats();
