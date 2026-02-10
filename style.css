@@ -115,8 +115,9 @@ h1 {
 
 .seats {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    flex-direction: column; /* ESSENCIAL: Faz as fileiras ficarem uma em cima da outra */
+    gap: 10px;              /* Espaço vertical entre a fileira de cima e a de baixo */
+    align-items: flex-start; /* Alinha as fileiras à esquerda (ou use center para centralizar) */
 }
 
 .seat {
@@ -131,6 +132,7 @@ h1 {
     font-size: 0.8em;
     font-weight: bold;
     transition: all 0.3s;
+    background: white;
 }
 
 .seat.available {
@@ -238,7 +240,6 @@ h1 {
 .seat-row {
     display: flex;
     gap: 8px;
-    margin-bottom: 8px;
 }
 
 .seat-row:last-child {
