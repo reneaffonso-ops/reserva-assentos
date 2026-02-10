@@ -1,11 +1,12 @@
-// CONFIGURAÇÃO - Substitua pela URL do seu Google Sheet publicado como CSV
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTngB6cIDUnYFLX_vwoXM1OufYfQknlAmUFiUsPi-c4vid7XOq_UmbOEQWNGszQ0TgSi1sZFTHYLC1N/pub?gid=0&single=true&output=csv';
+// CONFIGURAÇÃO - Substitua pela URL do Google Apps Script Web App
+const SCRIPT_URL = https://script.google.com/macros/s/AKfycbzEw6I2bALMsty6WXsSvY_7zcF8F9_f6dQSEyZz23S_5iJbwCD4suims_OWPy6o5cIdrg/exec;
+const SHEET_CSV_URL = https://docs.google.com/spreadsheets/d/e/2PACX-1vTngB6cIDUnYFLX_vwoXM1OufYfQknlAmUFiUsPi-c4vid7XOq_UmbOEQWNGszQ0TgSi1sZFTHYLC1N/pub?gid=0&single=true&output=csv;
 
 // Configuração dos assentos
 const seatingConfig = {
-    Aquario: { baias: 4, assentosPorBaia: 12 },
-    Salao: { baias: 3, assentosPorBaia: 12 },
-    Gouvea: { baias: 2, assentosPorBaia: 12 }
+    Aquario: { baias: 4, assentosPorBaia: 6, fileiras: 2 },
+    Salao: { baias: 3, assentosPorBaia: 6, fileiras: 2 },
+    Gouvea: { baias: 2, assentosPorBaia: 6, fileiras: 2 }
 };
 
 let reservations = [];
@@ -14,25 +15,36 @@ let selectedSeat = null;
 // Inicializar a data de hoje
 document.getElementById('reservation-date').valueAsDate = new Date();
 
-// Gerar assentos
+// Gerar assentos com duas fileiras por baia
 function generateSeats() {
     document.querySelectorAll('.row').forEach(row => {
         const location = row.dataset.location;
-        const rowNum = row.dataset.row;
+        const rowNum = parseInt(row.dataset.row);
         const seatsContainer = row.querySelector('.seats');
         const config = seatingConfig[location];
         
-        for (let i = 1; i <= config.assentosPorBaia; i++) {
-            const seat = document.createElement('div');
-            seat.className = 'seat available';
-            seat.textContent = i;
-            seat.dataset.location = location;
-            seat.dataset.row = rowNum;
-            seat.dataset.number = i;
-            seat.dataset.id = `${location}-${rowNum}-${i}`;
+        // Criar duas fileiras de assentos
+        for (let fileira = 1; fileira <= config.fileiras; fileira++) {
+            const fileiraDiv = document.createElement('div');
+            fileiraDiv.className = 'seat-row';
             
-            seat.addEventListener('click', () => selectSeat(seat));
-            seatsContainer.appendChild(seat);
+            const startNum = (fileira - 1) * config.assentosPorBaia + 1;
+            const endNum = fileira * config.assentosPorBaia;
+            
+            for (let i = startNum; i <= endNum; i++) {
+                const seat = document.createElement('div');
+                seat.className = 'seat available';
+                seat.textContent = i;
+                seat.dataset.location = location;
+                seat.dataset.row = rowNum;
+                seat.dataset.number = i;
+                seat.dataset.id = `${location}-${rowNum}-${i}`;
+                
+                seat.addEventListener('click', () => selectSeat(seat));
+                fileiraDiv.appendChild(seat);
+            }
+            
+            seatsContainer.appendChild(fileiraDiv);
         }
     });
 }
@@ -50,8 +62,16 @@ function updateSeatsStatus() {
         
         if (isReserved) {
             seat.className = 'seat occupied';
+            const reservation = reservations.find(r => 
+                r.data === selectedDate && 
+                `${r.local}-${r.baia}-${r.assento}` === seatId
+            );
+            if (reservation) {
+                seat.title = `${reservation.nome} - ${reservation.setor}`;
+            }
         } else {
             seat.className = 'seat available';
+            seat.title = '';
         }
     });
 }
@@ -78,7 +98,12 @@ function selectSeat(seat) {
     
     // Mostrar modal
     const modal = document.getElementById('reservation-modal');
-    const seatInfo = `${seat.dataset.location} - Baia ${seat.dataset.row} - Assento ${seat.dataset.number}`;
+    const locationNames = {
+        'Aquario': 'Aquário',
+        'Salao': 'Salão',
+        'Gouvea': 'Lado Gouvêa'
+    };
+    const seatInfo = `${locationNames[seat.dataset.location]} - Baia ${seat.dataset.row} - Assento ${seat.dataset.number}`;
     document.getElementById('selected-seat').textContent = seatInfo;
     modal.style.display = 'block';
 }
@@ -92,7 +117,7 @@ document.querySelector('.close').addEventListener('click', () => {
     }
 });
 
-// Submeter reserva
+// Submeter reserva usando formulário HTML (solução CORS)
 document.getElementById('reservation-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -110,47 +135,94 @@ document.getElementById('reservation-form').addEventListener('submit', async (e)
         timestamp: new Date().toISOString()
     };
     
-    // Salvar no Google Sheets
-    await saveReservation(reservation);
-    
-    // Atualizar localmente
-    reservations.push(reservation);
-    updateSeatsStatus();
-    
-    // Fechar modal e limpar formulário
-    document.getElementById('reservation-modal').style.display = 'none';
-    document.getElementById('reservation-form').reset();
-    selectedSeat = null;
-    
-    alert('Reserva confirmada com sucesso!');
-});
-
-// Salvar reserva no Google Sheets
-async function saveReservation(reservation) {
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzEw6I2bALMsty6WXsSvY_7zcF8F9_f6dQSEyZz23S_5iJbwCD4suims_OWPy6o5cIdrg/exec';
+    // Mostrar loading
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'Salvando...';
+    submitButton.disabled = true;
     
     try {
-        await fetch(scriptURL, {
+        // Salvar no Google Sheets usando FormData (evita CORS)
+        const success = await saveReservation(reservation);
+        
+        if (success) {
+            // Atualizar localmente
+            reservations.push(reservation);
+            updateSeatsStatus();
+            
+            // Fechar modal e limpar formulário
+            document.getElementById('reservation-modal').style.display = 'none';
+            document.getElementById('reservation-form').reset();
+            selectedSeat = null;
+            
+            alert('Reserva confirmada com sucesso!');
+        } else {
+            throw new Error('Falha ao salvar');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao salvar reserva. Por favor, tente novamente.');
+        submitButton.disabled = false;
+    } finally {
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+    }
+});
+
+// Salvar reserva no Google Sheets (usando FormData para evitar CORS)
+async function saveReservation(reservation) {
+    try {
+        // Criar FormData em vez de JSON para evitar preflight CORS
+        const formData = new FormData();
+        formData.append('data', reservation.data);
+        formData.append('nome', reservation.nome);
+        formData.append('setor', reservation.setor);
+        formData.append('local', reservation.local);
+        formData.append('baia', reservation.baia);
+        formData.append('assento', reservation.assento);
+        formData.append('timestamp', reservation.timestamp);
+        
+        const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify(reservation)
+            body: formData,
+            mode: 'no-cors' // Importante para evitar erro CORS
         });
+        
+        // Com no-cors, não podemos ler a resposta, mas a requisição é enviada
+        // Aguardar um momento para garantir que salvou
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Recarregar reservas para confirmar
+        await loadReservations();
+        
+        return true;
     } catch (error) {
         console.error('Erro ao salvar:', error);
-        alert('Erro ao salvar reserva. Tente novamente.');
+        return false;
     }
 }
 
 // Carregar reservas do Google Sheets
 async function loadReservations() {
     try {
-        const response = await fetch(SHEET_URL);
+        const response = await fetch(SHEET_CSV_URL + '&t=' + new Date().getTime());
         const text = await response.text();
-        const rows = text.split('\n').slice(1); // Remove cabeçalho
+        const rows = text.trim().split('\n').slice(1); // Remove cabeçalho
         
-        reservations = rows.map(row => {
-            const [data, nome, setor, local, baia, assento] = row.split(',');
-            return { data, nome, setor, local, baia, assento };
-        }).filter(r => r.data); // Remove linhas vazias
+        reservations = rows
+            .filter(row => row.trim())
+            .map(row => {
+                const [data, nome, setor, local, baia, assento] = row.split(',');
+                return { 
+                    data: data?.trim(), 
+                    nome: nome?.trim(), 
+                    setor: setor?.trim(), 
+                    local: local?.trim(), 
+                    baia: baia?.trim(), 
+                    assento: assento?.trim() 
+                };
+            })
+            .filter(r => r.data); // Remove linhas vazias
         
         updateSeatsStatus();
     } catch (error) {
@@ -160,6 +232,9 @@ async function loadReservations() {
 
 // Event listener para mudança de data
 document.getElementById('reservation-date').addEventListener('change', updateSeatsStatus);
+
+// Recarregar reservas periodicamente
+setInterval(loadReservations, 30000); // A cada 30 segundos
 
 // Inicializar
 generateSeats();

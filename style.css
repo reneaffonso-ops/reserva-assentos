@@ -233,3 +233,14 @@ h1 {
     font-weight: bold;
     color: #2196f3;
 }
+
+/* Estilo para múltiplas fileiras de assentos */
+.seat-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.seat-row:last-child {
+    margin-bottom: 0;
+}
