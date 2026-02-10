@@ -5,157 +5,167 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f5f5f5;
-    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #f0f2f5;
+    padding: 15px;
+    color: #333;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
     background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* CENTRALIZAÇÃO GERAL */
+h1, h2, h3, p {
+    text-align: center;
 }
 
 h1 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 30px;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
 }
 
 .instructions {
-    background: #e3f2fd;
-    padding: 20px;
+    background: #e8f0fe;
+    padding: 15px;
     border-radius: 8px;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
+    border: 1px solid #d2e3fc;
 }
 
 .instructions h2 {
-    font-size: 1.2em;
-    margin-bottom: 10px;
-    color: #1976d2;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #1967d2;
+}
+
+.instructions p {
+    font-size: 0.9rem;
+    margin-bottom: 15px;
 }
 
 .legend {
     display: flex;
-    gap: 20px;
-    margin-top: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .legend span {
-    padding: 8px 15px;
-    border-radius: 5px;
-    font-size: 0.9em;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
 .legend .available { background: #4caf50; color: white; }
-.legend .occupied { background: #f44336; color: white; }
-.legend .selected { background: #2196f3; color: white; }
+.legend .occupied { background: #ea4335; color: white; }
+.legend .selected { background: #4285f4; color: white; }
 
 .date-selector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
     margin-bottom: 30px;
     padding: 15px;
-    background: #fafafa;
-    border-radius: 5px;
-}
-
-.date-selector label {
-    font-weight: bold;
-    margin-right: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
 }
 
 .date-selector input {
-    padding: 8px;
-    border: 1px solid #ddd;
+    padding: 8px 12px;
+    border: 1px solid #dadce0;
     border-radius: 4px;
-    font-size: 1em;
+    font-size: 1rem;
+    outline: none;
 }
 
+/* ÁREAS E ASSENTOS */
 .section {
     margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.section:last-child {
+    border-bottom: none;
 }
 
 .section h2 {
-    color: #555;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #2196f3;
+    color: #444;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .seating-area {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    align-items: center; /* Centraliza as baias */
+    gap: 30px; /* ESPAÇAMENTO MAIOR ENTRE BAIAS (Item 3) */
 }
 
 .row {
     display: flex;
-    align-items: flex-start; /* Alinha ao topo para suportar multilinhas */
-    gap: 10px;
+    align-items: center;
+    gap: 15px;
+    background: #fafafa;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #eee;
 }
 
 .row-label {
-    min-width: 80px;
+    writing-mode: vertical-rl; /* Texto na vertical para economizar espaço */
+    transform: rotate(180deg);
     font-weight: bold;
-    color: #666;
-    margin-top: 15px; /* Ajuste visual para centralizar com o bloco de assentos */
+    color: #5f6368;
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 5px 0;
 }
 
-/* CORREÇÃO DAS BAIAS: Coluna Vertical */
+/* GRUPO DE ASSENTOS (6x2) */
 .seats {
     display: flex;
-    flex-direction: column; /* Importante: Empilha as fileiras */
+    flex-direction: column;
     gap: 8px;
 }
 
 .seat-row {
-    display: flex; /* Mantém os assentos da mesma fileira lado a lado */
+    display: flex;
     gap: 8px;
 }
 
 .seat {
-    width: 50px;
-    height: 50px;
-    border: 2px solid #ddd;
-    border-radius: 8px;
+    width: 45px;
+    height: 45px;
+    border-radius: 6px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8em;
+    font-size: 0.85rem;
     font-weight: bold;
-    transition: all 0.3s;
+    transition: all 0.2s;
     background: white;
+    border: 2px solid #ddd;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-.seat.available {
-    background: #4caf50;
-    color: white;
-    border-color: #4caf50;
-}
+.seat.available { background: #4caf50; border-color: #4caf50; color: white; }
+.seat.occupied { background: #ea4335; border-color: #ea4335; color: white; cursor: not-allowed; opacity: 0.6; }
+.seat.selected { background: #4285f4; border-color: #4285f4; color: white; transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 
-.seat.available:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.seat.occupied {
-    background: #f44336;
-    color: white;
-    border-color: #f44336;
-    cursor: not-allowed;
-}
-
-.seat.selected {
-    background: #2196f3;
-    color: white;
-    border-color: #2196f3;
-    transform: scale(1.1);
-}
-
-/* Modal */
+/* MODAL E FORMULÁRIO */
 .modal {
     display: none;
     position: fixed;
@@ -165,61 +175,114 @@ h1 {
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(3px);
 }
 
 .modal-content {
     background: white;
-    margin: 10% auto;
-    padding: 30px;
-    border-radius: 10px;
+    margin: 15vh auto;
+    padding: 25px;
+    border-radius: 12px;
     width: 90%;
-    max-width: 500px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    position: relative;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 .close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 24px;
+    color: #999;
     cursor: pointer;
 }
 
-.close:hover { color: #000; }
-
-#reservation-form { margin-top: 20px; }
+/* CORREÇÃO VISUAL DO MENU (Item 1 e 2) */
+#reservation-form {
+    margin-top: 20px;
+    text-align: left;
+}
 
 #reservation-form label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #555;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #444;
+    font-size: 0.9rem;
 }
 
-/* INPUT E SELECT COM MESMO ESTILO */
+/* Estilo unificado para Input e Select */
 #reservation-form input,
 #reservation-form select {
     width: 100%;
-    padding: 10px;
+    height: 48px; /* Altura fixa igual */
+    padding: 0 12px;
     margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
     background-color: white;
+    color: #333;
+    -webkit-appearance: none; /* Remove estilo nativo do iOS */
+    appearance: none;
+    box-shadow: none;
+}
+
+/* Seta customizada para o Select */
+#reservation-form select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
 }
 
 #reservation-form button {
     width: 100%;
-    padding: 12px;
-    background: #4caf50;
+    height: 48px;
+    background: #1a73e8;
     color: white;
     border: none;
-    border-radius: 5px;
-    font-size: 1em;
-    font-weight: bold;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.3s;
+    margin-top: 10px;
 }
 
-#reservation-form button:hover { background: #45a049; }
-#selected-seat { font-weight: bold; color: #2196f3; }
+#reservation-form button:hover { background: #1557b0; }
+
+/* RESPONSIVIDADE (Item 5) */
+@media (max-width: 600px) {
+    .seat {
+        width: 38px;  /* Assentos menores no celular */
+        height: 38px;
+        font-size: 0.75rem;
+    }
+    
+    .row {
+        gap: 8px;
+        padding: 8px;
+    }
+
+    .row-label {
+        font-size: 0.7rem;
+    }
+    
+    .section h2 {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .seat {
+        width: 32px; /* Ainda menores para telas muito pequenas */
+        height: 32px;
+    }
+}

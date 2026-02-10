@@ -2,19 +2,19 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reserva de Assentos - Escritório</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reserva de Assentos</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Sistema de Reserva de Assentos</h1>
+        <h1>Reserva de Estações de Trabalho</h1>
         
         <div class="instructions">
-            <h2>Instruções</h2>
-            <p>Selecione a data desejada, clique no assento disponível (verde), selecione seu setor e confirme.</p>
+            <h2>Como reservar:</h2>
+            <p>1. Escolha a data. 2. Toque em um assento verde. 3. Preencha seus dados.</p>
             <div class="legend">
-                <span class="available">Disponível</span>
+                <span class="available">Livre</span>
                 <span class="occupied">Ocupado</span>
                 <span class="selected">Selecionado</span>
             </div>
@@ -25,9 +25,9 @@
             <input type="date" id="reservation-date">
         </div>
 
-        <!-- Salão Principal - Aquário -->
+        <!-- Aquário -->
         <div class="section">
-            <h2>Salão Principal - Aquário (48 lugares)</h2>
+            <h2>Aquário (48 lugares)</h2>
             <div class="seating-area">
                 <div class="row" data-location="Aquario" data-row="1">
                     <span class="row-label">Baia 1</span>
@@ -48,9 +48,9 @@
             </div>
         </div>
 
-        <!-- Salão Principal - Salão -->
+        <!-- Salão -->
         <div class="section">
-            <h2>Salão Principal - Salão (36 lugares)</h2>
+            <h2>Salão (36 lugares)</h2>
             <div class="seating-area">
                 <div class="row" data-location="Salao" data-row="1">
                     <span class="row-label">Baia 1</span>
@@ -67,9 +67,9 @@
             </div>
         </div>
 
-        <!-- Fundo - Lado Gouvêa -->
+        <!-- Fundo -->
         <div class="section">
-            <h2>Fundo - Lado Gouvêa (24 lugares)</h2>
+            <h2>Fundo - Gouvêa (24 lugares)</h2>
             <div class="seating-area">
                 <div class="row" data-location="Gouvea" data-row="1">
                     <span class="row-label">Baia 1</span>
@@ -82,23 +82,23 @@
             </div>
         </div>
 
-        <!-- Modal de Reserva -->
+        <!-- Modal -->
         <div id="reservation-modal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
-                <h2>Confirmar Reserva</h2>
-                <p>Assento: <span id="selected-seat"></span></p>
+                <h3>Confirmar Reserva</h3>
+                <p style="text-align: left; margin-top: 10px; color: #666;">Assento: <span id="selected-seat" style="color: #1a73e8; font-weight: bold;"></span></p>
+                
                 <form id="reservation-form">
-                    <label for="full-name">Nome Completo:</label>
-                    <input type="text" id="full-name" required placeholder="Digite seu nome">
+                    <label for="full-name">Nome Completo</label>
+                    <input type="text" id="full-name" required placeholder="Ex: João Silva">
                     
-                    <label for="department">Setor:</label>
-                    <!-- MUDANÇA AQUI: Input virou Select -->
+                    <label for="department">Setor / Área</label>
                     <select id="department" required>
-                        <option value="">Selecione o setor...</option>
+                        <option value="">Selecione...</option>
                     </select>
                     
-                    <button type="submit">Confirmar Reserva</button>
+                    <button type="submit">Confirmar</button>
                 </form>
             </div>
         </div>
