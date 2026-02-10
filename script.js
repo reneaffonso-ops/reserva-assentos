@@ -1,5 +1,5 @@
 // CONFIGURAÇÃO - Substitua pela URL do Google Apps Script Web App
-const SCRIPT_URL = https://script.google.com/macros/s/AKfycbzEw6I2bALMsty6WXsSvY_7zcF8F9_f6dQSEyZz23S_5iJbwCD4suims_OWPy6o5cIdrg/exec;
+const SCRIPT_URL = https://script.google.com/macros/s/AKfycbxzne0CvsiNNKKo9l_ckTPZy2UzLBXiQt055fgIt5Dsa_1Hp-ktoeb3UzrJyED0pV9TRA/exec
 const SHEET_CSV_URL = https://docs.google.com/spreadsheets/d/e/2PACX-1vTngB6cIDUnYFLX_vwoXM1OufYfQknlAmUFiUsPi-c4vid7XOq_UmbOEQWNGszQ0TgSi1sZFTHYLC1N/pub?gid=0&single=true&output=csv;
 
 // Configuração dos assentos
