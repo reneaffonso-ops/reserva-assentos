@@ -286,3 +286,21 @@ h1 {
         height: 32px;
     }
 }
+/* Estilo do Logo */
+.logo-container {
+    text-align: center; /* Centraliza a imagem */
+    margin-bottom: 20px; /* Espaço entre o logo e o título */
+}
+
+.site-logo {
+    max-width: 200px; /* Largura máxima (ajuste conforme necessário) */
+    height: auto;     /* Mantém a proporção correta */
+    display: inline-block;
+}
+
+/* Ajuste para celular */
+@media (max-width: 600px) {
+    .site-logo {
+        max-width: 150px; /* Logo um pouco menor no mobile */
+    }
+}
