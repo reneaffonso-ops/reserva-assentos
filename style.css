@@ -289,7 +289,7 @@ h1 {
 /* Estilo do Logo */
 .logo-container {
     text-align: center; /* Centraliza a imagem */
-    margin-bottom: 20px; /* Espaço entre o logo e o título */
+    margin-bottom: 10px; /* Espaço entre o logo e o título */
 }
 
 .site-logo {
