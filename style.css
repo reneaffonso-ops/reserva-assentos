@@ -205,13 +205,15 @@ h1 {
     color: #555;
 }
 
-#reservation-form input {
+#reservation-form input,
+#reservation-form select { 
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 1em;
+    background-color: white; /* Garante fundo branco */
 }
 
 #reservation-form button {

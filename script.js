@@ -7,6 +7,14 @@ const seatingConfig = {
     Aquario: { baias: 4, assentosPorBaia: 6, fileiras: 2 },
     Salao: { baias: 3, assentosPorBaia: 6, fileiras: 2 },
     Gouvea: { baias: 2, assentosPorBaia: 6, fileiras: 2 }
+
+// Configuração dos Setores por Local
+const departmentsByLocation = {
+    'Aquario': ['PTS', 'Centurion', 'BTG'],
+    'Salao':   ['CEP', 'Lazer', 'Eventos', 'Supplier', 'ICs'],
+    'Gouvea':  ['Financeiro', 'C&P', 'MKT & Com', 'TI', 'Projetos', 'Qualidade']
+
+};
 };
 
 let reservations = [];
@@ -79,14 +87,14 @@ function updateSeatsStatus() {
     });
 }
 
-// Selecionar assento
+// Selecionar assento e carregar menu correto
 function selectSeat(seat) {
     if (seat.classList.contains('occupied')) {
         alert('Este assento já está ocupado!');
         return;
     }
     
-    // Remover seleção anterior
+    // Remover seleção anterior visual
     document.querySelectorAll('.seat.selected').forEach(s => {
         if (s.classList.contains('occupied')) {
             s.className = 'seat occupied';
@@ -95,19 +103,40 @@ function selectSeat(seat) {
         }
     });
     
-    // Selecionar novo assento
+    // Marcar novo assento
     seat.classList.add('selected');
     selectedSeat = seat;
     
-    // Mostrar modal
+    // --- LÓGICA DO MENU DINÂMICO (NOVO) ---
+    const location = seat.dataset.location; // Pega o local (Aquario, Salao, Gouvea)
+    const departmentSelect = document.getElementById('department');
+    
+    // Limpar opções antigas
+    departmentSelect.innerHTML = '<option value="">Selecione seu setor...</option>';
+    
+    // Carregar opções baseadas no local
+    if (departmentsByLocation[location]) {
+        departmentsByLocation[location].forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept;
+            option.textContent = dept;
+            departmentSelect.appendChild(option);
+        });
+    }
+    // ---------------------------------------
+    
+    // Preencher textos do Modal
     const modal = document.getElementById('reservation-modal');
     const locationNames = {
         'Aquario': 'Aquário',
         'Salao': 'Salão',
         'Gouvea': 'Lado Gouvêa'
     };
-    const seatInfo = `${locationNames[seat.dataset.location]} - Baia ${seat.dataset.row} - Assento ${seat.dataset.number}`;
+    
+    const seatInfo = `${locationNames[location]} - Baia ${seat.dataset.row} - Assento ${seat.dataset.number}`;
     document.getElementById('selected-seat').textContent = seatInfo;
+    
+    // Abrir modal
     modal.style.display = 'block';
 }
 
