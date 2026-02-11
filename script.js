@@ -1,15 +1,13 @@
 // --- CONFIGURAÇÃO ---
-// Insira aqui a URL do seu Google Apps Script (Executável/Web App)
+// COLAR AQUI A NOVA URL GERADA NA IMPLANTAÇÃO "V2"
 const API_URL = 'https://script.google.com/macros/s/AKfycbxzne0CvsiNNKKo9l_ckTPZy2UzLBXiQt055fgIt5Dsa_1Hp-ktoeb3UzrJyED0pV9TRA/exec'; 
 
-// Configurações de Layout
 const seatingConfig = {
     Aquario: { baias: 4, assentosPorBaia: 6, fileiras: 2 },
     Salao: { baias: 3, assentosPorBaia: 6, fileiras: 2 },
     Gouvea: { baias: 2, assentosPorBaia: 6, fileiras: 2 }
 };
 
-// Configuração dos Setores por Local
 const departmentsByLocation = {
     'Aquario': ['PTS', 'Centurion', 'BTG'],
     'Salao':   ['CEP', 'Lazer', 'Eventos', 'Supplier', 'ICs'],
@@ -21,156 +19,128 @@ let selectedSeat = null;
 
 // --- INICIALIZAÇÃO ---
 window.onload = function() {
-    document.getElementById('reservation-date').valueAsDate = new Date();
+    // CORREÇÃO DA DATA (Usa hora local, não UTC)
+    const today = new Date();
+    const localISO = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    document.getElementById('reservation-date').value = localISO;
+
     generateSeats();
-    
-    // Carregamento Inicial
-    fetchReservations();
-    
-    // Atualização automática rápida (Polling)
-    setInterval(fetchReservations, 5000); // 5 segundos
+    fetchReservations(); // Busca inicial
+    setInterval(fetchReservations, 4000); // Polling a cada 4s
 };
 
 // --- EVENTOS ---
 document.getElementById('reservation-date').addEventListener('change', () => {
-    updateSeatsStatus(); // Feedback visual imediato
-    fetchReservations(); // Busca dados atualizados da nova data
+    updateSeatsStatus();
+    fetchReservations();
 });
-
 document.querySelector('.close').addEventListener('click', closeModal);
 
-// --- COMUNICAÇÃO COM O SERVIDOR (API) ---
-
-// Função de Busca (GET)
+// --- API ---
 async function fetchReservations() {
     try {
-        const response = await fetch(API_URL, { redirect: 'follow' });
+        // Adiciona timestamp para evitar cache do navegador
+        const response = await fetch(`${API_URL}?t=${new Date().getTime()}`, { redirect: 'follow' });
         const data = await response.json();
         
         if (Array.isArray(data)) {
             allReservations = data;
             updateSeatsStatus();
-        } else if (data.error) {
-            console.error("Erro na API:", data.error);
         }
     } catch (error) {
-        console.error("Erro de conexão:", error);
+        console.error("Erro sync:", error);
     }
 }
 
-// --- LÓGICA DE INTERFACE ---
-
+// --- VISUAL ---
 function generateSeats() {
     document.querySelectorAll('.row').forEach(row => {
         const location = row.dataset.location;
-        const rowNum = parseInt(row.dataset.row);
-        const seatsContainer = row.querySelector('.seats');
+        const rowNum = row.dataset.row;
+        const container = row.querySelector('.seats');
         const config = seatingConfig[location];
         
-        seatsContainer.innerHTML = '';
+        container.innerHTML = '';
         
-        for (let fileira = 1; fileira <= config.fileiras; fileira++) {
-            const fileiraDiv = document.createElement('div');
-            fileiraDiv.className = 'seat-row';
+        for (let f = 1; f <= config.fileiras; f++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'seat-row';
+            const start = (f - 1) * config.assentosPorBaia + 1;
+            const end = f * config.assentosPorBaia;
             
-            const startNum = (fileira - 1) * config.assentosPorBaia + 1;
-            const endNum = fileira * config.assentosPorBaia;
-            
-            for (let i = startNum; i <= endNum; i++) {
+            for (let i = start; i <= end; i++) {
                 const seat = document.createElement('div');
                 seat.className = 'seat available';
                 seat.textContent = i;
                 seat.dataset.location = location;
                 seat.dataset.row = rowNum;
                 seat.dataset.number = i;
-                // ID Único: Local-Baia-Assento
                 seat.dataset.id = `${location}-${rowNum}-${i}`;
-                
-                seat.addEventListener('click', () => selectSeat(seat));
-                fileiraDiv.appendChild(seat);
+                seat.onclick = () => selectSeat(seat);
+                rowDiv.appendChild(seat);
             }
-            seatsContainer.appendChild(fileiraDiv);
+            container.appendChild(rowDiv);
         }
     });
 }
 
 function updateSeatsStatus() {
-    const selectedDate = document.getElementById('reservation-date').value; // Formato YYYY-MM-DD
+    const selectedDate = document.getElementById('reservation-date').value;
     
     document.querySelectorAll('.seat').forEach(seat => {
         const seatId = seat.dataset.id;
         
-        // Busca reserva compatível (Backend já envia data normalizada)
+        // Comparação estrita de strings
         const reservation = allReservations.find(r => 
             r.data === selectedDate && 
-            `${r.local}-${r.baia}-${r.assento}` === seatId
+            String(r.local) === String(seat.dataset.location) &&
+            String(r.baia) === String(seat.dataset.row) &&
+            String(r.assento) === String(seat.dataset.number)
         );
         
-        seat.className = 'seat'; // Limpa classes
+        // Limpa estado visual anterior (exceto se for o selecionado pelo usuário atual)
+        const isSelected = selectedSeat === seat;
+        seat.className = isSelected ? 'seat selected' : 'seat available';
+        seat.title = 'Livre';
         
         if (reservation) {
-            seat.classList.add('occupied');
+            seat.className = 'seat occupied';
             seat.title = `${reservation.nome} (${reservation.setor})`;
             
-            // Se o assento selecionado acabou de ser ocupado por outro
-            if (selectedSeat && selectedSeat === seat) {
+            // Se estava selecionado e ficou ocupado na sync
+            if (isSelected) {
                 closeModal();
-                alert(`ATENÇÃO: O assento ${seat.textContent} acabou de ser ocupado por ${reservation.nome}!`);
+                alert(`O assento ${seat.textContent} foi ocupado por ${reservation.nome}.`);
                 selectedSeat = null;
             }
-        } else {
-            seat.classList.add('available');
-            seat.title = 'Livre';
-        }
-        
-        // Mantém visual do selecionado atual
-        if (selectedSeat && seat === selectedSeat) {
-            seat.classList.remove('available');
-            seat.classList.add('selected');
         }
     });
 }
 
 function selectSeat(seat) {
     if (seat.classList.contains('occupied')) {
-        alert('Este assento já está ocupado por: ' + seat.title);
+        alert('Lugar ocupado: ' + seat.title);
         return;
     }
     
-    // Remove seleção anterior
     if (selectedSeat) {
         selectedSeat.classList.remove('selected');
-        selectedSeat.classList.add('available'); // Retorna ao estado livre
+        selectedSeat.classList.add('available');
     }
     
-    seat.classList.add('selected');
     seat.classList.remove('available');
+    seat.classList.add('selected');
     selectedSeat = seat;
     
-    // Popula o Menu de Setores
-    const location = seat.dataset.location;
-    const deptSelect = document.getElementById('department');
-    deptSelect.innerHTML = '<option value="">Selecione...</option>';
+    // Menu Setor
+    const sel = document.getElementById('department');
+    sel.innerHTML = '<option value="">Selecione...</option>';
+    (departmentsByLocation[seat.dataset.location] || []).forEach(d => {
+        sel.innerHTML += `<option value="${d}">${d}</option>`;
+    });
     
-    const options = departmentsByLocation[location] || [];
-    if(options.length > 0) {
-        options.forEach(d => {
-            const opt = document.createElement('option');
-            opt.value = d;
-            opt.textContent = d;
-            deptSelect.appendChild(opt);
-        });
-    } else {
-        const opt = document.createElement('option');
-        opt.textContent = "Sem opções";
-        deptSelect.appendChild(opt);
-    }
-    
-    // Atualiza Modal
-    const displayNames = { 'Aquario': 'Aquário', 'Salao': 'Salão', 'Gouvea': 'Lado Gouvêa' };
     document.getElementById('selected-seat').textContent = 
-        `${displayNames[location] || location} - Baia ${seat.dataset.row} - Assento ${seat.dataset.number}`;
-        
+        `${seat.dataset.location} - Baia ${seat.dataset.row} - Assento ${seat.dataset.number}`;
     document.getElementById('reservation-modal').style.display = 'block';
 }
 
@@ -178,61 +148,49 @@ function closeModal() {
     document.getElementById('reservation-modal').style.display = 'none';
     if (selectedSeat) {
         selectedSeat.classList.remove('selected');
-        selectedSeat.classList.add('available'); // Libera visualmente
+        selectedSeat.classList.add('available');
         selectedSeat = null;
     }
     document.getElementById('reservation-form').reset();
 }
 
-// --- ENVIO SEGURO COM VALIDAÇÃO DE FILA (POST) ---
+// --- ENVIO ---
 document.getElementById('reservation-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     if (!selectedSeat) return;
 
     const btn = e.target.querySelector('button');
-    const originalText = btn.textContent;
-    btn.textContent = 'Verificando fila...'; // Feedback para o usuário
+    const txt = btn.textContent;
+    btn.textContent = 'Processando...';
     btn.disabled = true;
 
-    // Prepara dados
-    const formData = new FormData();
-    formData.append('data', document.getElementById('reservation-date').value);
-    formData.append('nome', document.getElementById('full-name').value);
-    formData.append('setor', document.getElementById('department').value);
-    formData.append('local', selectedSeat.dataset.location);
-    formData.append('baia', selectedSeat.dataset.row);
-    formData.append('assento', selectedSeat.dataset.number);
+    const fd = new FormData();
+    fd.append('data', document.getElementById('reservation-date').value);
+    fd.append('nome', document.getElementById('full-name').value);
+    fd.append('setor', document.getElementById('department').value);
+    fd.append('local', selectedSeat.dataset.location);
+    fd.append('baia', selectedSeat.dataset.row);
+    fd.append('assento', selectedSeat.dataset.number);
 
     try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            alert('Reserva Confirmada com Sucesso!');
-            closeModal();
-            // Atualização forçada para garantir que todos vejam o bloqueio
-            await fetchReservations(); 
-            
-        } else if (result.error === 'DUPLICATE') {
-            // TRATAMENTO DE CONFLITO
-            alert(`ATENÇÃO: Este lugar acabou de ser reservado!\n\nMotivo: ${result.message}`);
-            closeModal();
-            await fetchReservations(); // Atualiza a tela para pintar o lugar de vermelho
-            
-        } else {
-            throw new Error(result.error || 'Erro desconhecido no servidor');
-        }
+        const res = await fetch(API_URL, { method: 'POST', body: fd });
+        const json = await res.json();
 
-    } catch (error) {
-        console.error(error);
-        alert('Erro de conexão: ' + error.message);
+        if (json.success) {
+            alert('Sucesso!');
+            closeModal();
+            fetchReservations(); // Atualiza Imediatamente
+        } else if (json.error === 'DUPLICATE') {
+            alert(`ERRO: Lugar já reservado!\n${json.message}`);
+            closeModal();
+            fetchReservations(); // Atualiza para mostrar o ocupante
+        } else {
+            alert('Erro: ' + json.error);
+        }
+    } catch (err) {
+        alert('Erro de conexão.');
     } finally {
-        btn.textContent = originalText;
+        btn.textContent = txt;
         btn.disabled = false;
     }
 });
