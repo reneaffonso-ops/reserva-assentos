@@ -13,27 +13,38 @@ body {
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
-/* HEADER BANNER */
+/* HEADER BANNER INTEGRADO */
 .header-area {
-    width: 100%;
-    margin-bottom: 25px;
-    text-align: center; /* Centraliza caso a imagem seja menor que o container */
+    /* Compensa o padding de 20px do container para encostar nas bordas */
+    margin: -20px -20px 25px -20px;
+    width: calc(100% + 40px); /* Recupera a largura perdida pelo padding */
+    position: relative;
+    z-index: 1;
 }
 
 .logo-container {
     width: 100%;
-    max-width: 996px; /* Largura máxima original da imagem */
-    margin: 0 auto;   /* Centraliza o bloco */
+    line-height: 0; /* Remove espaço branco fantasma abaixo da imagem */
 }
 
 .site-logo {
-    width: 100%;       /* Ocupa toda a largura do container */
-    height: auto;      /* Mantém a proporção correta */
-    display: block;    /* Remove espaços extras abaixo da imagem */
-    border-radius: 8px; /* Opcional: arredonda cantos para combinar com o design */
-    object-fit: cover; /* Garante que a imagem cubra a área sem distorcer */
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    
+    /* Arredonda SÓ em cima para casar com o container */
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    
+    /* Garante que não vaze nada */
+    max-width: none; 
 }
 
+/* Removemos o H1 textual */
+h1 { display: none; } 
 /* PAINEL DE OCUPAÇÃO (Barra Colorida) */
 .occupancy-panel { margin-bottom: 25px; background: #fff; }
 .occupancy-panel h3 { font-size: 0.9rem; color: #7f8c8d; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
