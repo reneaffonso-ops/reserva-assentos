@@ -8,16 +8,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="logo-container">
-    <!-- Tenta carregar o logo. Se falhar, mostra o texto. -->
-    <!-- IMPORTANTE: Verifique se o nome do arquivo abaixo é IDÊNTICO ao do GitHub -->
-    <img src="logo.png" alt="Reserva de Estações" class="site-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-    <div class="logo-placeholder" style="display: none; font-size: 1.5rem; font-weight: bold; color: #555;">LOGO</div>
-</div>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header-area">
+            <div class="logo-container">
+                <!-- Tenta carregar imagem com tratamento de erro -->
+                <img src="./logo.png" alt="Logo" class="site-logo" onerror="this.src='./Logo.png'; this.onerror=function(){this.style.display='none'; document.querySelector('.logo-text').style.display='block';}">
+                <div class="logo-text" style="display:none; font-weight:bold; font-size:1.5rem; color:#555;">RESERVA</div>
+            </div>
             <h1>Reserva de Estações</h1>
         </div>
 
-        <!-- DASHBOARD DE OCUPAÇÃO -->
+        <!-- PAINEL DE OCUPAÇÃO -->
         <div class="occupancy-panel">
             <h3>Taxa de Ocupação do Dia</h3>
             <div class="progress-container">
@@ -32,26 +34,26 @@
                 </div>
             </div>
             <div class="progress-legend">
-                <span class="leg-item"><span class="dot aquario"></span>Aquário</span>
-                <span class="leg-item"><span class="dot salao"></span>Salão</span>
-                <span class="leg-item"><span class="dot gouvea"></span>Gouvêa</span>
-                <span class="leg-val" id="total-percent">Total: 0%</span>
+                <div class="leg-item"><span class="dot aquario"></span>Aquário</div>
+                <div class="leg-item"><span class="dot salao"></span>Salão</div>
+                <div class="leg-item"><span class="dot gouvea"></span>Gouvêa</div>
+                <div class="leg-val" id="total-percent">Total: 0%</div>
             </div>
         </div>
 
-        <!-- CARDS DE SETORES -->
+        <!-- DASHBOARD CARDS -->
         <div id="dashboard-cards" class="dashboard-grid">
-            <p class="loading-text">Carregando dados da equipe...</p>
+            <p class="loading-text">Carregando setores...</p>
         </div>
 
         <!-- DATA -->
         <div class="date-selector-container">
-            <label for="reservation-date">Data da Reserva:</label>
+            <label>Data da Reserva:</label>
             <input type="date" id="reservation-date">
-            <p class="week-info" id="week-range-text">Semana vigente: ...</p>
+            <p class="week-info" id="week-range-text">...</p>
         </div>
 
-        <!-- MAPA -->
+        <!-- LEGENDA -->
         <div class="instructions">
             <div class="legend">
                 <span class="available">Livre</span>
@@ -60,9 +62,9 @@
             </div>
         </div>
 
-        <!-- ÁREAS -->
+        <!-- MAPA -->
         <div class="section">
-            <h2>Aquário (48 lug.)</h2>
+            <h2>Aquário</h2>
             <div class="seating-area">
                 <div class="row" data-location="Aquario" data-row="1"><div class="seats"></div></div>
                 <div class="row" data-location="Aquario" data-row="2"><div class="seats"></div></div>
@@ -70,18 +72,16 @@
                 <div class="row" data-location="Aquario" data-row="4"><div class="seats"></div></div>
             </div>
         </div>
-
         <div class="section">
-            <h2>Salão (36 lug.)</h2>
+            <h2>Salão</h2>
             <div class="seating-area">
                 <div class="row" data-location="Salao" data-row="1"><div class="seats"></div></div>
                 <div class="row" data-location="Salao" data-row="2"><div class="seats"></div></div>
                 <div class="row" data-location="Salao" data-row="3"><div class="seats"></div></div>
             </div>
         </div>
-
         <div class="section">
-            <h2>Gouvêa (24 lug.)</h2>
+            <h2>Gouvêa</h2>
             <div class="seating-area">
                 <div class="row" data-location="Gouvea" data-row="1"><div class="seats"></div></div>
                 <div class="row" data-location="Gouvea" data-row="2"><div class="seats"></div></div>
@@ -96,13 +96,11 @@
                 <p class="modal-detail">Assento: <span id="selected-seat"></span></p>
                 <form id="reservation-form">
                     <label>Nome Completo</label>
-                    <input type="text" id="full-name" required placeholder="Ex: Ana Silva">
-                    
+                    <input type="text" id="full-name" required placeholder="Digite seu nome">
                     <label>Setor</label>
                     <select id="department" required>
                         <option value="">Carregando...</option>
                     </select>
-                    
                     <button type="submit">Confirmar</button>
                 </form>
             </div>

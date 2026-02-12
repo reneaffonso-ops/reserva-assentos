@@ -7,13 +7,18 @@ body {
     padding: 10px;
 }
 
+
 .container {
-    max-width: 800px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
+    max-width: 800px; margin: 0 auto; background: white; border-radius: 12px; padding: 20px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* HEADER FIX */
+.header-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25px;
 }
 
 /* LOGO & TITULO */
