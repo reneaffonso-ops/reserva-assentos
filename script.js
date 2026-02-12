@@ -1,5 +1,5 @@
 // CONFIGURAÇÃO: Insira sua URL NOVA AQUI
-const API_URL = 'AKfycbzRz_557n-SASD8w1JVFqCcViA4sWWld_u8-HPV6kfdQ1vc6zHAb5MTySmS-XohPx7TVA'; 
+const API_URL = 'https://script.google.com/macros/s/AKfycbxJgpeVtLNwzOllMIYl9SQQ0qJZ_OBprTnYMmYag4fad7UH48miduo8ktqw8nOQE1t35w/exec'; 
 
 // VALORES PADRÃO (FALLBACK DE SEGURANÇA)
 // Se a planilha falhar, o sistema usa estes dados para não travar
