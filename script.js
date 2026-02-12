@@ -38,21 +38,29 @@ window.onload = function() {
 
 function setupDateRestrictions() {
     const today = new Date();
-    const currentDay = today.getDay(); 
+    const currentDay = today.getDay(); // 0 = Domingo, 6 = Sábado
+    
+    // Início da Semana Atual (Domingo)
     const start = new Date(today);
     start.setDate(today.getDate() - currentDay);
+    
+    // Fim da Próxima Semana (Sábado da semana que vem)
     const end = new Date(start);
-    end.setDate(start.getDate() + 6);
+    end.setDate(start.getDate() + 13); // 6 dias (fim desta) + 7 dias (próxima) = 13
     
     const dateInput = document.getElementById('reservation-date');
+    
+    // Define os limites no calendário HTML
     dateInput.min = start.toISOString().split('T')[0];
     dateInput.max = end.toISOString().split('T')[0];
     
+    // Define o valor inicial como Hoje (ajustado para fuso horário local)
     const localToday = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
     dateInput.value = localToday;
     
+    // Atualiza texto informativo
     document.getElementById('week-range-text').textContent = 
-        `Semana vigente: ${start.toLocaleDateString('pt-BR')} a ${end.toLocaleDateString('pt-BR')}`;
+        `Período permitido: ${start.toLocaleDateString('pt-BR')} a ${end.toLocaleDateString('pt-BR')}`;
 }
 
 async function fetchData() {
