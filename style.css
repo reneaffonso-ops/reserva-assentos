@@ -13,18 +13,26 @@ body {
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
-/* HEADER FIX */
+/* HEADER BANNER */
 .header-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    width: 100%;
     margin-bottom: 25px;
+    text-align: center; /* Centraliza caso a imagem seja menor que o container */
 }
 
-/* LOGO & TITULO */
-.logo-container { text-align: center; margin-bottom: 15px; }
-.site-logo { max-height: 150px; }
-h1 { text-align: center; font-size: 1.5rem; margin-bottom: 25px; color: #2c3e50; }
+.logo-container {
+    width: 100%;
+    max-width: 996px; /* Largura máxima original da imagem */
+    margin: 0 auto;   /* Centraliza o bloco */
+}
+
+.site-logo {
+    width: 100%;       /* Ocupa toda a largura do container */
+    height: auto;      /* Mantém a proporção correta */
+    display: block;    /* Remove espaços extras abaixo da imagem */
+    border-radius: 8px; /* Opcional: arredonda cantos para combinar com o design */
+    object-fit: cover; /* Garante que a imagem cubra a área sem distorcer */
+}
 
 /* PAINEL DE OCUPAÇÃO (Barra Colorida) */
 .occupancy-panel { margin-bottom: 25px; background: #fff; }

@@ -9,15 +9,18 @@
 </head>
 <body>
     <div class="container">
-        <!-- HEADER -->
-        <div class="header-area">
-            <div class="logo-container">
-                <!-- Tenta carregar imagem com tratamento de erro -->
-                <img src="./logo.png" alt="Logo" class="site-logo" onerror="this.src='./Logo.png'; this.onerror=function(){this.style.display='none'; document.querySelector('.logo-text').style.display='block';}">
-                <div class="logo-text" style="display:none; font-weight:bold; font-size:1.5rem; color:#555;">RESERVA</div>
-            </div>
-            <h1>Reserva de Estações</h1>
-        </div>
+
+<!-- HEADER BANNER -->
+<div class="header-area">
+    <div class="logo-container">
+        <!-- Banner Full Width -->
+        <img src="./banner.png" alt="Reserva de Estações" class="site-logo" 
+             onerror="this.style.display='none'; document.querySelector('.logo-fallback').style.display='block';">
+        
+        <!-- Fallback em Texto (caso a imagem não carregue) -->
+        <h1 class="logo-fallback" style="display:none; color:#2c3e50; margin-top:20px;">Reserva de Estações</h1>
+    </div>
+</div>
 
         <!-- PAINEL DE OCUPAÇÃO -->
         <div class="occupancy-panel">
