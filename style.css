@@ -180,7 +180,7 @@ button:hover { background: #219150; }
     font-size: 1.1rem;
     font-weight: 700;
     color: #2c3e50; /* Azul escuro padrão do tema */
-    text-transform: uppercase; /* Caixa alta para hierarquia */
+    /* Caixa alta para hierarquia */
     letter-spacing: 0.5px;
     margin-bottom: 8px;
 }
