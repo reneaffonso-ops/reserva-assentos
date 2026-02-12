@@ -1,7 +1,16 @@
 // CONFIGURAÇÃO: Insira sua URL NOVA AQUI
-const API_URL = 'SUA_NOVA_URL_DO_APPS_SCRIPT_AQUI'; 
+const API_URL = 'AKfycbzEw6I2bALMsty6WXsSvY_7zcF8F9_f6dQSEyZz23S_5iJbwCD4suims_OWPy6o5cIdrg'; 
 
-// Capacidades Totais (Hardcoded para cálculo rápido da barra, mas pode vir do config também)
+// VALORES PADRÃO (FALLBACK DE SEGURANÇA)
+// Se a planilha falhar, o sistema usa estes dados para não travar
+const DEFAULT_CONFIG = [
+    { area: "PTS", slots: 15, dias: "Seg a Sex" },
+    { area: "Marketing", slots: 10, dias: "Ter, Qui" },
+    { area: "TI", slots: 20, dias: "Seg a Sex" },
+    { area: "Financeiro", slots: 8, dias: "Seg, Qua" },
+    { area: "RH", slots: 5, dias: "Sex" }
+];
+
 const CAPACITIES = { Aquario: 48, Salao: 36, Gouvea: 24 };
 const TOTAL_SEATS = 48 + 36 + 24;
 
@@ -12,35 +21,33 @@ const seatingConfig = {
 };
 
 let allReservations = [];
-let departmentRules = []; // Virá do Excel (Aba Config)
+let departmentRules = [];
 let selectedSeat = null;
 
 window.onload = function() {
     setupDateRestrictions();
     generateSeats();
-    fetchData(); // Busca única de dados + config
-    setInterval(fetchData, 8000); // Refresh a cada 8s
+    
+    // Inicia carregamento
+    const loadingText = document.querySelector('.loading-text');
+    if(loadingText) loadingText.textContent = "Conectando ao servidor...";
+    
+    fetchData(); 
+    setInterval(fetchData, 8000); 
 };
 
-// 1. RESTRITO À SEMANA VIGENTE
 function setupDateRestrictions() {
     const today = new Date();
-    const currentDay = today.getDay(); // 0=Dom, 6=Sab
-    
-    // Calcular Domingo (Início) e Sábado (Fim)
+    const currentDay = today.getDay(); 
     const start = new Date(today);
     start.setDate(today.getDate() - currentDay);
-    
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
     
     const dateInput = document.getElementById('reservation-date');
-    
-    // Define Min e Max no Input HTML
     dateInput.min = start.toISOString().split('T')[0];
     dateInput.max = end.toISOString().split('T')[0];
     
-    // Valor inicial = Hoje (se dentro da semana) ou ajusta
     const localToday = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
     dateInput.value = localToday;
     
@@ -48,17 +55,33 @@ function setupDateRestrictions() {
         `Semana vigente: ${start.toLocaleDateString('pt-BR')} a ${end.toLocaleDateString('pt-BR')}`;
 }
 
-// 2. BUSCA UNIFICADA (Reservas + Config)
 async function fetchData() {
     try {
         const res = await fetch(`${API_URL}?t=${new Date().getTime()}`, { redirect: 'follow' });
         const json = await res.json();
         
         if (json.reservations) allReservations = json.reservations;
-        if (json.config) departmentRules = json.config;
+        
+        // Lógica de Configuração com Fallback
+        if (json.config && json.config.length > 0) {
+            departmentRules = json.config;
+        } else {
+            // Se veio vazio, usa o padrão para não quebrar
+            if(departmentRules.length === 0) {
+                console.warn("Configuração vazia, usando padrão.");
+                departmentRules = DEFAULT_CONFIG;
+            }
+        }
         
         updateVisuals();
-    } catch (e) { console.error("Sync error:", e); }
+    } catch (e) { 
+        console.error("Erro de conexão:", e);
+        // Em caso de erro total, também usa padrão
+        if(departmentRules.length === 0) {
+            departmentRules = DEFAULT_CONFIG;
+            renderDashboard();
+        }
+    }
 }
 
 function updateVisuals() {
@@ -67,57 +90,53 @@ function updateVisuals() {
     renderDashboard();
 }
 
-// 3. ATUALIZA BARRA DE OCUPAÇÃO (Barra Colorida)
 function updateOccupancyBar() {
     const date = document.getElementById('reservation-date').value;
-    // Filtra reservas do dia
     const dayRes = allReservations.filter(r => r.data === date);
     
-    // Contagem por área
     const counts = { Aquario: 0, Salao: 0, Gouvea: 0 };
     dayRes.forEach(r => { if(counts[r.local] !== undefined) counts[r.local]++; });
     
-    // Cálculos de % em relação ao TOTAL GERAL (para a barra empilhada)
     const pctAquario = (counts.Aquario / TOTAL_SEATS) * 100;
     const pctSalao = (counts.Salao / TOTAL_SEATS) * 100;
     const pctGouvea = (counts.Gouvea / TOTAL_SEATS) * 100;
-    const totalPct = ((dayRes.length / TOTAL_SEATS) * 100).toFixed(1);
+    const totalPct = ((dayRes.length / TOTAL_SEATS) * 100).toFixed(0);
 
-    // Atualiza CSS
     document.getElementById('prog-aquario').style.width = `${pctAquario}%`;
     document.getElementById('prog-salao').style.width = `${pctSalao}%`;
     document.getElementById('prog-gouvea').style.width = `${pctGouvea}%`;
     
-    // Atualiza Tooltips Individuais (Exibe % relativo à capacidade daquela sala)
-    const realPctAq = Math.round((counts.Aquario / CAPACITIES.Aquario) * 100);
-    const realPctSa = Math.round((counts.Salao / CAPACITIES.Salao) * 100);
-    const realPctGo = Math.round((counts.Gouvea / CAPACITIES.Gouvea) * 100);
+    // Tooltips seguros
+    const tooltipAq = document.querySelector('#prog-aquario .tooltip');
+    if(tooltipAq) tooltipAq.textContent = `Aquário: ${counts.Aquario}/${CAPACITIES.Aquario}`;
     
-    document.querySelector('#prog-aquario .tooltip').textContent = `Aquário: ${counts.Aquario}/${CAPACITIES.Aquario} (${realPctAq}%)`;
-    document.querySelector('#prog-salao .tooltip').textContent = `Salão: ${counts.Salao}/${CAPACITIES.Salao} (${realPctSa}%)`;
-    document.querySelector('#prog-gouvea .tooltip').textContent = `Gouvêa: ${counts.Gouvea}/${CAPACITIES.Gouvea} (${realPctGo}%)`;
+    const tooltipSa = document.querySelector('#prog-salao .tooltip');
+    if(tooltipSa) tooltipSa.textContent = `Salão: ${counts.Salao}/${CAPACITIES.Salao}`;
     
-    document.getElementById('total-percent').textContent = `Total Dia: ${totalPct}%`;
+    const tooltipGo = document.querySelector('#prog-gouvea .tooltip');
+    if(tooltipGo) tooltipGo.textContent = `Gouvêa: ${counts.Gouvea}/${CAPACITIES.Gouvea}`;
+    
+    document.getElementById('total-percent').textContent = `Total: ${totalPct}%`;
 }
 
-// 4. RENDERIZA DASHBOARD (Cards)
 function renderDashboard() {
     const container = document.getElementById('dashboard-cards');
-    if(departmentRules.length === 0) return;
+    if(!container) return;
+    
+    container.innerHTML = '';
+    
+    if(departmentRules.length === 0) {
+        container.innerHTML = '<p class="error-text">Sem dados de setores.</p>';
+        return;
+    }
     
     const date = document.getElementById('reservation-date').value;
     const dayRes = allReservations.filter(r => r.data === date);
     
-    container.innerHTML = '';
-    
     departmentRules.forEach(rule => {
-        // Conta quantos deste setor já reservaram hoje
         const occupied = dayRes.filter(r => r.setor === rule.area).length;
         const total = rule.slots;
-        const available = total - occupied;
-        
-        // Cor dinâmica: Vermelho se lotado, Verde se livre
-        const statusColor = available <= 0 ? '#e74c3c' : '#27ae60';
+        const statusColor = (total - occupied) <= 0 ? '#e74c3c' : '#27ae60';
         
         const card = document.createElement('div');
         card.className = 'dash-card';
@@ -131,7 +150,7 @@ function renderDashboard() {
     });
 }
 
-// --- FUNÇÕES DE MAPA (Mantidas e Ajustadas) ---
+// --- VISUAIS ---
 document.getElementById('reservation-date').addEventListener('change', () => {
     updateVisuals();
     fetchData();
@@ -197,9 +216,10 @@ function selectSeat(seat) {
     seat.classList.add('selected'); seat.classList.remove('available');
     selectedSeat = seat;
     
-    // Popula Select baseado no Config do Excel
     const sel = document.getElementById('department');
     sel.innerHTML = '<option value="">Selecione...</option>';
+    
+    // Usa a lista carregada (ou padrão) para preencher o select
     departmentRules.forEach(r => {
         sel.innerHTML += `<option value="${r.area}">${r.area}</option>`;
     });
