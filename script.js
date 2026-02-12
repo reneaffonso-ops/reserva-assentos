@@ -1,116 +1,187 @@
-// --- CONFIGURAÇÃO ---
-// COLAR AQUI A NOVA URL GERADA NA IMPLANTAÇÃO "V2"
-const API_URL = 'https://script.google.com/macros/s/AKfycbxzne0CvsiNNKKo9l_ckTPZy2UzLBXiQt055fgIt5Dsa_1Hp-ktoeb3UzrJyED0pV9TRA/exec'; 
+// CONFIGURAÇÃO: Insira sua URL NOVA AQUI
+const API_URL = 'SUA_NOVA_URL_DO_APPS_SCRIPT_AQUI'; 
+
+// Capacidades Totais (Hardcoded para cálculo rápido da barra, mas pode vir do config também)
+const CAPACITIES = { Aquario: 48, Salao: 36, Gouvea: 24 };
+const TOTAL_SEATS = 48 + 36 + 24;
 
 const seatingConfig = {
     Aquario: { baias: 4, assentosPorBaia: 6, fileiras: 2 },
-    Salao: { baias: 3, assentosPorBaia: 6, fileiras: 2 },
-    Gouvea: { baias: 2, assentosPorBaia: 6, fileiras: 2 }
-};
-
-const departmentsByLocation = {
-    'Aquario': ['PTS', 'Centurion', 'BTG'],
-    'Salao':   ['CEP', 'Lazer', 'Eventos', 'Supplier', 'ICs'],
-    'Gouvea':  ['Financeiro', 'C&P', 'MKT & Com', 'TI', 'Projetos', 'Qualidade']
+    Salao:   { baias: 3, assentosPorBaia: 6, fileiras: 2 },
+    Gouvea:  { baias: 2, assentosPorBaia: 6, fileiras: 2 }
 };
 
 let allReservations = [];
+let departmentRules = []; // Virá do Excel (Aba Config)
 let selectedSeat = null;
 
-// --- INICIALIZAÇÃO ---
 window.onload = function() {
-    // CORREÇÃO DA DATA (Usa hora local, não UTC)
-    const today = new Date();
-    const localISO = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-    document.getElementById('reservation-date').value = localISO;
-
+    setupDateRestrictions();
     generateSeats();
-    fetchReservations(); // Busca inicial
-    setInterval(fetchReservations, 4000); // Polling a cada 4s
+    fetchData(); // Busca única de dados + config
+    setInterval(fetchData, 8000); // Refresh a cada 8s
 };
 
-// --- EVENTOS ---
-document.getElementById('reservation-date').addEventListener('change', () => {
-    updateSeatsStatus();
-    fetchReservations();
-});
-document.querySelector('.close').addEventListener('click', closeModal);
-
-// --- API ---
-async function fetchReservations() {
-    try {
-        // Adiciona timestamp para evitar cache do navegador
-        const response = await fetch(`${API_URL}?t=${new Date().getTime()}`, { redirect: 'follow' });
-        const data = await response.json();
-        
-        if (Array.isArray(data)) {
-            allReservations = data;
-            updateSeatsStatus();
-        }
-    } catch (error) {
-        console.error("Erro sync:", error);
-    }
+// 1. RESTRITO À SEMANA VIGENTE
+function setupDateRestrictions() {
+    const today = new Date();
+    const currentDay = today.getDay(); // 0=Dom, 6=Sab
+    
+    // Calcular Domingo (Início) e Sábado (Fim)
+    const start = new Date(today);
+    start.setDate(today.getDate() - currentDay);
+    
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    
+    const dateInput = document.getElementById('reservation-date');
+    
+    // Define Min e Max no Input HTML
+    dateInput.min = start.toISOString().split('T')[0];
+    dateInput.max = end.toISOString().split('T')[0];
+    
+    // Valor inicial = Hoje (se dentro da semana) ou ajusta
+    const localToday = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    dateInput.value = localToday;
+    
+    document.getElementById('week-range-text').textContent = 
+        `Semana vigente: ${start.toLocaleDateString('pt-BR')} a ${end.toLocaleDateString('pt-BR')}`;
 }
 
-// --- VISUAL ---
+// 2. BUSCA UNIFICADA (Reservas + Config)
+async function fetchData() {
+    try {
+        const res = await fetch(`${API_URL}?t=${new Date().getTime()}`, { redirect: 'follow' });
+        const json = await res.json();
+        
+        if (json.reservations) allReservations = json.reservations;
+        if (json.config) departmentRules = json.config;
+        
+        updateVisuals();
+    } catch (e) { console.error("Sync error:", e); }
+}
+
+function updateVisuals() {
+    updateSeatsStatus();
+    updateOccupancyBar();
+    renderDashboard();
+}
+
+// 3. ATUALIZA BARRA DE OCUPAÇÃO (Barra Colorida)
+function updateOccupancyBar() {
+    const date = document.getElementById('reservation-date').value;
+    // Filtra reservas do dia
+    const dayRes = allReservations.filter(r => r.data === date);
+    
+    // Contagem por área
+    const counts = { Aquario: 0, Salao: 0, Gouvea: 0 };
+    dayRes.forEach(r => { if(counts[r.local] !== undefined) counts[r.local]++; });
+    
+    // Cálculos de % em relação ao TOTAL GERAL (para a barra empilhada)
+    const pctAquario = (counts.Aquario / TOTAL_SEATS) * 100;
+    const pctSalao = (counts.Salao / TOTAL_SEATS) * 100;
+    const pctGouvea = (counts.Gouvea / TOTAL_SEATS) * 100;
+    const totalPct = ((dayRes.length / TOTAL_SEATS) * 100).toFixed(1);
+
+    // Atualiza CSS
+    document.getElementById('prog-aquario').style.width = `${pctAquario}%`;
+    document.getElementById('prog-salao').style.width = `${pctSalao}%`;
+    document.getElementById('prog-gouvea').style.width = `${pctGouvea}%`;
+    
+    // Atualiza Tooltips Individuais (Exibe % relativo à capacidade daquela sala)
+    const realPctAq = Math.round((counts.Aquario / CAPACITIES.Aquario) * 100);
+    const realPctSa = Math.round((counts.Salao / CAPACITIES.Salao) * 100);
+    const realPctGo = Math.round((counts.Gouvea / CAPACITIES.Gouvea) * 100);
+    
+    document.querySelector('#prog-aquario .tooltip').textContent = `Aquário: ${counts.Aquario}/${CAPACITIES.Aquario} (${realPctAq}%)`;
+    document.querySelector('#prog-salao .tooltip').textContent = `Salão: ${counts.Salao}/${CAPACITIES.Salao} (${realPctSa}%)`;
+    document.querySelector('#prog-gouvea .tooltip').textContent = `Gouvêa: ${counts.Gouvea}/${CAPACITIES.Gouvea} (${realPctGo}%)`;
+    
+    document.getElementById('total-percent').textContent = `Total Dia: ${totalPct}%`;
+}
+
+// 4. RENDERIZA DASHBOARD (Cards)
+function renderDashboard() {
+    const container = document.getElementById('dashboard-cards');
+    if(departmentRules.length === 0) return;
+    
+    const date = document.getElementById('reservation-date').value;
+    const dayRes = allReservations.filter(r => r.data === date);
+    
+    container.innerHTML = '';
+    
+    departmentRules.forEach(rule => {
+        // Conta quantos deste setor já reservaram hoje
+        const occupied = dayRes.filter(r => r.setor === rule.area).length;
+        const total = rule.slots;
+        const available = total - occupied;
+        
+        // Cor dinâmica: Vermelho se lotado, Verde se livre
+        const statusColor = available <= 0 ? '#e74c3c' : '#27ae60';
+        
+        const card = document.createElement('div');
+        card.className = 'dash-card';
+        card.innerHTML = `
+            <div class="card-title">${rule.area}</div>
+            <div class="card-slots" style="color:${statusColor}">${occupied}/${total}</div>
+            <div class="card-sub">Ocupados</div>
+            <div class="card-days">${rule.dias}</div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+// --- FUNÇÕES DE MAPA (Mantidas e Ajustadas) ---
+document.getElementById('reservation-date').addEventListener('change', () => {
+    updateVisuals();
+    fetchData();
+});
+
 function generateSeats() {
     document.querySelectorAll('.row').forEach(row => {
-        const location = row.dataset.location;
-        const rowNum = row.dataset.row;
-        const container = row.querySelector('.seats');
-        const config = seatingConfig[location];
+        const loc = row.dataset.location;
+        const rNum = row.dataset.row;
+        const cont = row.querySelector('.seats');
+        const cfg = seatingConfig[loc];
+        cont.innerHTML = '';
         
-        container.innerHTML = '';
-        
-        for (let f = 1; f <= config.fileiras; f++) {
-            const rowDiv = document.createElement('div');
-            rowDiv.className = 'seat-row';
-            const start = (f - 1) * config.assentosPorBaia + 1;
-            const end = f * config.assentosPorBaia;
-            
-            for (let i = start; i <= end; i++) {
+        for (let f=1; f<=cfg.fileiras; f++) {
+            const d = document.createElement('div'); d.className = 'seat-row';
+            const s = (f-1)*cfg.assentosPorBaia+1; const e = f*cfg.assentosPorBaia;
+            for(let i=s; i<=e; i++) {
                 const seat = document.createElement('div');
                 seat.className = 'seat available';
                 seat.textContent = i;
-                seat.dataset.location = location;
-                seat.dataset.row = rowNum;
-                seat.dataset.number = i;
-                seat.dataset.id = `${location}-${rowNum}-${i}`;
+                seat.dataset.id = `${loc}-${rNum}-${i}`;
+                seat.dataset.loc = loc; seat.dataset.row = rNum; seat.dataset.num = i;
                 seat.onclick = () => selectSeat(seat);
-                rowDiv.appendChild(seat);
+                d.appendChild(seat);
             }
-            container.appendChild(rowDiv);
+            cont.appendChild(d);
         }
     });
 }
 
 function updateSeatsStatus() {
-    const selectedDate = document.getElementById('reservation-date').value;
-    
+    const date = document.getElementById('reservation-date').value;
     document.querySelectorAll('.seat').forEach(seat => {
-        const seatId = seat.dataset.id;
-        
-        // Comparação estrita de strings
-        const reservation = allReservations.find(r => 
-            r.data === selectedDate && 
-            String(r.local) === String(seat.dataset.location) &&
-            String(r.baia) === String(seat.dataset.row) &&
-            String(r.assento) === String(seat.dataset.number)
+        const r = allReservations.find(res => 
+            res.data === date && 
+            String(res.local) === seat.dataset.loc && 
+            String(res.baia) === seat.dataset.row && 
+            String(res.assento) === seat.dataset.num
         );
         
-        // Limpa estado visual anterior (exceto se for o selecionado pelo usuário atual)
-        const isSelected = selectedSeat === seat;
-        seat.className = isSelected ? 'seat selected' : 'seat available';
+        const isSel = selectedSeat === seat;
+        seat.className = isSel ? 'seat selected' : 'seat available';
         seat.title = 'Livre';
         
-        if (reservation) {
+        if (r) {
             seat.className = 'seat occupied';
-            seat.title = `${reservation.nome} (${reservation.setor})`;
-            
-            // Se estava selecionado e ficou ocupado na sync
-            if (isSelected) {
+            seat.title = `${r.nome} (${r.setor})`;
+            if (isSel) {
                 closeModal();
-                alert(`O assento ${seat.textContent} foi ocupado por ${reservation.nome}.`);
+                alert(`Ocupado por ${r.nome}`);
                 selectedSeat = null;
             }
         }
@@ -118,79 +189,59 @@ function updateSeatsStatus() {
 }
 
 function selectSeat(seat) {
-    if (seat.classList.contains('occupied')) {
-        alert('Lugar ocupado: ' + seat.title);
-        return;
-    }
-    
+    if (seat.classList.contains('occupied')) return alert('Ocupado!');
     if (selectedSeat) {
         selectedSeat.classList.remove('selected');
         selectedSeat.classList.add('available');
     }
-    
-    seat.classList.remove('available');
-    seat.classList.add('selected');
+    seat.classList.add('selected'); seat.classList.remove('available');
     selectedSeat = seat;
     
-    // Menu Setor
+    // Popula Select baseado no Config do Excel
     const sel = document.getElementById('department');
     sel.innerHTML = '<option value="">Selecione...</option>';
-    (departmentsByLocation[seat.dataset.location] || []).forEach(d => {
-        sel.innerHTML += `<option value="${d}">${d}</option>`;
+    departmentRules.forEach(r => {
+        sel.innerHTML += `<option value="${r.area}">${r.area}</option>`;
     });
     
-    document.getElementById('selected-seat').textContent = 
-        `${seat.dataset.location} - Baia ${seat.dataset.row} - Assento ${seat.dataset.number}`;
+    document.getElementById('selected-seat').textContent = `${seat.dataset.loc} - Baia ${seat.dataset.row} - ${seat.dataset.num}`;
     document.getElementById('reservation-modal').style.display = 'block';
 }
 
+document.querySelector('.close').addEventListener('click', closeModal);
 function closeModal() {
     document.getElementById('reservation-modal').style.display = 'none';
-    if (selectedSeat) {
+    if(selectedSeat) {
         selectedSeat.classList.remove('selected');
         selectedSeat.classList.add('available');
         selectedSeat = null;
     }
-    document.getElementById('reservation-form').reset();
 }
 
-// --- ENVIO ---
 document.getElementById('reservation-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!selectedSeat) return;
-
+    if(!selectedSeat) return;
+    
     const btn = e.target.querySelector('button');
-    const txt = btn.textContent;
-    btn.textContent = 'Processando...';
-    btn.disabled = true;
-
+    btn.textContent = 'Enviando...'; btn.disabled = true;
+    
     const fd = new FormData();
     fd.append('data', document.getElementById('reservation-date').value);
     fd.append('nome', document.getElementById('full-name').value);
     fd.append('setor', document.getElementById('department').value);
-    fd.append('local', selectedSeat.dataset.location);
+    fd.append('local', selectedSeat.dataset.loc);
     fd.append('baia', selectedSeat.dataset.row);
-    fd.append('assento', selectedSeat.dataset.number);
-
+    fd.append('assento', selectedSeat.dataset.num);
+    
     try {
-        const res = await fetch(API_URL, { method: 'POST', body: fd });
+        const res = await fetch(API_URL, {method: 'POST', body: fd});
         const json = await res.json();
-
-        if (json.success) {
-            alert('Sucesso!');
-            closeModal();
-            fetchReservations(); // Atualiza Imediatamente
-        } else if (json.error === 'DUPLICATE') {
-            alert(`ERRO: Lugar já reservado!\n${json.message}`);
-            closeModal();
-            fetchReservations(); // Atualiza para mostrar o ocupante
+        if(json.success) {
+            alert('Reserva OK!'); closeModal(); fetchData();
         } else {
-            alert('Erro: ' + json.error);
+            alert('Erro: ' + (json.message || json.error));
+            if(json.error === 'DUPLICATE') fetchData();
         }
-    } catch (err) {
-        alert('Erro de conexão.');
-    } finally {
-        btn.textContent = txt;
-        btn.disabled = false;
-    }
+    } catch(err) { alert('Erro conexão'); }
+    finally { btn.textContent = 'Confirmar'; btn.disabled = false; }
 });

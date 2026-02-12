@@ -3,21 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Reserva de Assentos</title>
+    <title>Reserva de Estações</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Fonte Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-<div class="container">
-    <div class="logo-container">
-        <!-- Substitua 'logo.png' pela extensão correta se for .jpg -->
-        <img src="logo.png" alt="Logo da Empresa" class="site-logo">
-    </div>
-    <h1>Reserva de Estações de Trabalho</h1>
-        
+        <!-- CABEÇALHO -->
+        <div class="logo-container">
+            <!-- Insira seu logo aqui -->
+            <img src="https://placehold.co/200x50?text=LOGO" alt="Logo" class="site-logo">
+        </div>
+        <h1>Reserva de Estações</h1>
+
+        <!-- PAINEL DE OCUPAÇÃO (NOVO) -->
+        <div class="occupancy-panel">
+            <h3>Taxa de Ocupação do Dia</h3>
+            <div class="progress-container">
+                <div class="progress-bar bar-aquario" id="prog-aquario" style="width: 0%">
+                    <span class="tooltip">Aquário: 0%</span>
+                </div>
+                <div class="progress-bar bar-salao" id="prog-salao" style="width: 0%">
+                    <span class="tooltip">Salão: 0%</span>
+                </div>
+                <div class="progress-bar bar-gouvea" id="prog-gouvea" style="width: 0%">
+                    <span class="tooltip">Gouvêa: 0%</span>
+                </div>
+            </div>
+            <div class="progress-legend">
+                <span class="leg-item"><span class="dot aquario"></span>Aquário</span>
+                <span class="leg-item"><span class="dot salao"></span>Salão</span>
+                <span class="leg-item"><span class="dot gouvea"></span>Gouvêa</span>
+                <span class="leg-val" id="total-percent">Total: 0%</span>
+            </div>
+        </div>
+
+        <!-- DASHBOARD DE SETORES (NOVO) -->
+        <div id="dashboard-cards" class="dashboard-grid">
+            <!-- Cards gerados via JS -->
+            <p class="loading-text">Carregando dados da equipe...</p>
+        </div>
+
+        <!-- SELETOR DE DATA -->
+        <div class="date-selector-container">
+            <div class="date-selector">
+                <label for="reservation-date">Data da Reserva:</label>
+                <!-- min e max definidos via JS para travar a semana -->
+                <input type="date" id="reservation-date">
+                <p class="week-info" id="week-range-text">Semana vigente: ...</p>
+            </div>
+        </div>
+
+        <!-- MAPA DE ASSENTOS -->
         <div class="instructions">
-            <h2>Como reservar:</h2>
-            <p>1. Escolha a data. 2. Toque em um assento verde. 3. Preencha seus dados.</p>
             <div class="legend">
                 <span class="available">Livre</span>
                 <span class="occupied">Ocupado</span>
@@ -25,90 +64,50 @@
             </div>
         </div>
 
-        <div class="date-selector">
-            <label for="reservation-date">Data:</label>
-            <input type="date" id="reservation-date">
-        </div>
-
-        <!-- Aquário -->
+        <!-- ÁREAS -->
         <div class="section">
-            <h2>Aquário (48 lugares)</h2>
+            <h2>Aquário (48 lug.)</h2>
             <div class="seating-area">
-                <div class="row" data-location="Aquario" data-row="1">
-                    <span class="row-label">Baia 1</span>
-                    <div class="seats"></div>
-                </div>
-                <div class="row" data-location="Aquario" data-row="2">
-                    <span class="row-label">Baia 2</span>
-                    <div class="seats"></div>
-                </div>
-                <div class="row" data-location="Aquario" data-row="3">
-                    <span class="row-label">Baia 3</span>
-                    <div class="seats"></div>
-                </div>
-                <div class="row" data-location="Aquario" data-row="4">
-                    <span class="row-label">Baia 4</span>
-                    <div class="seats"></div>
-                </div>
+                <div class="row" data-location="Aquario" data-row="1"><div class="seats"></div></div>
+                <div class="row" data-location="Aquario" data-row="2"><div class="seats"></div></div>
+                <div class="row" data-location="Aquario" data-row="3"><div class="seats"></div></div>
+                <div class="row" data-location="Aquario" data-row="4"><div class="seats"></div></div>
             </div>
         </div>
 
-        <!-- Salão -->
         <div class="section">
-            <h2>Salão (36 lugares)</h2>
+            <h2>Salão (36 lug.)</h2>
             <div class="seating-area">
-                <div class="row" data-location="Salao" data-row="1">
-                    <span class="row-label">Baia 1</span>
-                    <div class="seats"></div>
-                </div>
-                <div class="row" data-location="Salao" data-row="2">
-                    <span class="row-label">Baia 2</span>
-                    <div class="seats"></div>
-                </div>
-                <div class="row" data-location="Salao" data-row="3">
-                    <span class="row-label">Baia 3</span>
-                    <div class="seats"></div>
-                </div>
+                <div class="row" data-location="Salao" data-row="1"><div class="seats"></div></div>
+                <div class="row" data-location="Salao" data-row="2"><div class="seats"></div></div>
+                <div class="row" data-location="Salao" data-row="3"><div class="seats"></div></div>
             </div>
         </div>
 
-        <!-- Fundo -->
         <div class="section">
-            <h2>Fundo - Gouvêa (24 lugares)</h2>
+            <h2>Gouvêa (24 lug.)</h2>
             <div class="seating-area">
-                <div class="row" data-location="Gouvea" data-row="1">
-                    <span class="row-label">Baia 1</span>
-                    <div class="seats"></div>
-                </div>
-                <div class="row" data-location="Gouvea" data-row="2">
-                    <span class="row-label">Baia 2</span>
-                    <div class="seats"></div>
-                </div>
+                <div class="row" data-location="Gouvea" data-row="1"><div class="seats"></div></div>
+                <div class="row" data-location="Gouvea" data-row="2"><div class="seats"></div></div>
             </div>
         </div>
 
-        <!-- Modal -->
+        <!-- MODAL -->
         <div id="reservation-modal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
                 <h3>Confirmar Reserva</h3>
-                <p style="text-align: left; margin-top: 10px; color: #666;">Assento: <span id="selected-seat" style="color: #1a73e8; font-weight: bold;"></span></p>
-                
+                <p class="modal-detail">Assento: <span id="selected-seat"></span></p>
                 <form id="reservation-form">
-                    <label for="full-name">Nome Completo</label>
-                    <input type="text" id="full-name" required placeholder="Ex: João Silva">
-                    
-                    <label for="department">Setor / Área</label>
-                    <select id="department" required>
-                        <option value="">Selecione...</option>
-                    </select>
-                    
+                    <label>Nome Completo</label>
+                    <input type="text" id="full-name" required placeholder="Ex: Ana Silva">
+                    <label>Setor</label>
+                    <select id="department" required><option value="">Selecione...</option></select>
                     <button type="submit">Confirmar</button>
                 </form>
             </div>
         </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>

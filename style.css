@@ -1,308 +1,146 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+/* RESET & BASE */
+* { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     font-family: 'Roboto', sans-serif;
-    background: #f0f2f5;
-    padding: 15px;
+    background: #f4f6f8;
     color: #333;
- -webkit-font-smoothing: antialiased; /* Deixa a fonte mais nítida no Mac/iOS */
+    padding: 10px;
 }
 
 .container {
-    max-width: 1000px;
+    max-width: 800px;
     margin: 0 auto;
     background: white;
-    padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
-/* CENTRALIZAÇÃO GERAL */
-h1, h2, h3, p {
+/* LOGO & TITULO */
+.logo-container { text-align: center; margin-bottom: 15px; }
+.site-logo { max-height: 50px; }
+h1 { text-align: center; font-size: 1.5rem; margin-bottom: 25px; color: #2c3e50; }
+
+/* PAINEL DE OCUPAÇÃO (Barra Colorida) */
+.occupancy-panel { margin-bottom: 25px; background: #fff; }
+.occupancy-panel h3 { font-size: 0.9rem; color: #7f8c8d; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+
+.progress-container {
+    display: flex;
+    height: 24px;
+    background: #ecf0f1;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    transition: width 0.5s ease;
+    position: relative;
+    cursor: pointer;
+}
+
+/* Cores das Áreas */
+.bar-aquario { background-color: #3498db; } /* Azul */
+.bar-salao { background-color: #2ecc71; }   /* Verde */
+.bar-gouvea { background-color: #e67e22; }  /* Laranja */
+
+/* Tooltips da Barra */
+.progress-bar .tooltip {
+    visibility: hidden;
+    background-color: #333;
+    color: #fff;
     text-align: center;
+    border-radius: 4px;
+    padding: 5px 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 120%; /* Acima da barra */
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.75rem;
+    white-space: nowrap;
 }
+.progress-bar:hover .tooltip { visibility: visible; opacity: 1; }
 
-h1 {
-    color: #1a1a1a;
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-}
-
-.instructions {
-    background: #e8f0fe;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 25px;
-    border: 1px solid #d2e3fc;
-}
-
-.instructions h2 {
-    font-size: 1.1rem;
-    margin-bottom: 8px;
-    color: #1967d2;
-}
-
-.instructions p {
-    font-size: 0.9rem;
-    margin-bottom: 15px;
-}
-
-.legend {
+.progress-legend {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.legend span {
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.legend .available { background: #4caf50; color: white; }
-.legend .occupied { background: #ea4335; color: white; }
-.legend .selected { background: #4285f4; color: white; }
-
-.date-selector {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 30px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-}
-
-.date-selector input {
-    padding: 8px 12px;
-    border: 1px solid #dadce0;
-    border-radius: 4px;
-    font-size: 1rem;
-    outline: none;
-}
-
-/* ÁREAS E ASSENTOS */
-.section {
-    margin-bottom: 40px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #eee;
-}
-
-.section:last-child {
-    border-bottom: none;
-}
-
-.section h2 {
-    color: #444;
-    margin-bottom: 20px;
-    font-size: 1.2rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.seating-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Centraliza as baias */
-    gap: 30px; /* ESPAÇAMENTO MAIOR ENTRE BAIAS (Item 3) */
-}
-
-.row {
-    display: flex;
-    align-items: center;
     gap: 15px;
-    background: #fafafa;
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid #eee;
-}
-
-.row-label {
-    writing-mode: vertical-rl; /* Texto na vertical para economizar espaço */
-    transform: rotate(180deg);
-    font-weight: bold;
-    color: #5f6368;
+    margin-top: 8px;
     font-size: 0.8rem;
+    color: #555;
+    flex-wrap: wrap;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.dot.aquario { background: #3498db; }
+.dot.salao { background: #2ecc71; }
+.dot.gouvea { background: #e67e22; }
+.leg-val { font-weight: bold; margin-left: 10px; color: #2c3e50; }
+
+/* DASHBOARD CARDS */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Responsivo */
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.dash-card {
+    background: #fff;
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+    padding: 12px;
     text-align: center;
-    padding: 5px 0;
+    transition: transform 0.2s;
 }
+.dash-card:hover { border-color: #3498db; transform: translateY(-2px); }
 
-/* GRUPO DE ASSENTOS (6x2) */
-.seats {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
+.card-title { font-size: 0.85rem; font-weight: bold; color: #34495e; margin-bottom: 5px; }
+.card-slots { font-size: 1.2rem; font-weight: 700; color: #2c3e50; }
+.card-sub { font-size: 0.7rem; color: #95a5a6; margin-top: 4px; }
+.card-days { margin-top: 8px; font-size: 0.7rem; color: #fff; background: #95a5a6; padding: 2px 6px; border-radius: 4px; display: inline-block;}
 
-.seat-row {
-    display: flex;
-    gap: 8px;
-}
+/* DATA */
+.date-selector-container { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 25px; text-align: center; }
+.date-selector input { padding: 8px 12px; font-size: 1rem; border: 1px solid #ced4da; border-radius: 4px; }
+.week-info { font-size: 0.8rem; color: #7f8c8d; margin-top: 5px; }
+
+/* MAPA E ASSENTOS */
+.section h2 { font-size: 1.1rem; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; margin-bottom: 15px; }
+.seating-area { display: flex; flex-direction: column; gap: 20px; align-items: center; margin-bottom: 30px; }
+.row { display: flex; gap: 10px; }
+
+.seats { display: flex; flex-direction: column; gap: 8px; }
+.seat-row { display: flex; gap: 8px; }
 
 .seat {
-    width: 45px;
-    height: 45px;
+    width: 40px; height: 40px;
+    background: #fff; border: 2px solid #bdc3c7;
     border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.85rem;
-    font-weight: bold;
-    transition: all 0.2s;
-    background: white;
-    border: 2px solid #ddd;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 0.8rem; color: #7f8c8d;
+    cursor: pointer; transition: all 0.2s;
 }
+.seat.available { border-color: #27ae60; color: #27ae60; }
+.seat.occupied { background: #e74c3c; border-color: #e74c3c; color: #fff; cursor: not-allowed; }
+.seat.selected { background: #3498db; border-color: #3498db; color: #fff; transform: scale(1.1); }
 
-.seat.available { background: #4caf50; border-color: #4caf50; color: white; }
-.seat.occupied { background: #ea4335; border-color: #ea4335; color: white; cursor: not-allowed; opacity: 0.6; }
-.seat.selected { background: #4285f4; border-color: #4285f4; color: white; transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+/* MODAL */
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+.modal-content { background: white; margin: 15% auto; padding: 25px; width: 90%; max-width: 400px; border-radius: 8px; position: relative; }
+.close { position: absolute; right: 15px; top: 10px; font-size: 24px; cursor: pointer; }
+.modal-detail { margin-bottom: 15px; color: #3498db; font-weight: bold; }
+input, select, button { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #ddd; }
+button { background: #27ae60; color: white; border: none; font-weight: bold; cursor: pointer; }
+button:hover { background: #219150; }
 
-/* MODAL E FORMULÁRIO */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(3px);
-}
-
-.modal-content {
-    background: white;
-    margin: 15vh auto;
-    padding: 25px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    position: relative;
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-.close {
-    position: absolute;
-    right: 20px;
-    top: 15px;
-    font-size: 24px;
-    color: #999;
-    cursor: pointer;
-}
-
-/* CORREÇÃO VISUAL DO MENU (Item 1 e 2) */
-#reservation-form {
-    margin-top: 20px;
-    text-align: left;
-}
-
-#reservation-form label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    color: #444;
-    font-size: 0.9rem;
-}
-
-/* Estilo unificado para Input e Select */
-#reservation-form input,
-#reservation-form select {
-    width: 100%;
-    height: 48px; /* Altura fixa igual */
-    padding: 0 12px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 1rem;
-    background-color: white;
-    color: #333;
-    -webkit-appearance: none; /* Remove estilo nativo do iOS */
-    appearance: none;
-    box-shadow: none;
-}
-
-/* Seta customizada para o Select */
-#reservation-form select {
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 16px;
-}
-
-#reservation-form button {
-    width: 100%;
-    height: 48px;
-    background: #1a73e8;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-#reservation-form button:hover { background: #1557b0; }
-
-/* RESPONSIVIDADE (Item 5) */
-@media (max-width: 600px) {
-    .seat {
-        width: 38px;  /* Assentos menores no celular */
-        height: 38px;
-        font-size: 0.75rem;
-    }
-    
-    .row {
-        gap: 8px;
-        padding: 8px;
-    }
-
-    .row-label {
-        font-size: 0.7rem;
-    }
-    
-    .section h2 {
-        font-size: 1rem;
-    }
-}
-
-@media (max-width: 380px) {
-    .seat {
-        width: 32px; /* Ainda menores para telas muito pequenas */
-        height: 32px;
-    }
-}
-/* Estilo do Logo */
-.logo-container {
-    text-align: center; /* Centraliza a imagem */
-    margin-bottom: 10px; /* Espaço entre o logo e o título */
-}
-
-.site-logo {
-    max-width: 200px; /* Largura máxima (ajuste conforme necessário) */
-    height: auto;     /* Mantém a proporção correta */
-    display: inline-block;
-}
-
-/* Ajuste para celular */
-@media (max-width: 600px) {
-    .site-logo {
-        max-width: 150px; /* Logo um pouco menor no mobile */
-    }
-}
+/* Legenda */
+.legend { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+.legend span { padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; color: #fff; }
+.legend .available { background: #27ae60; }
+.legend .occupied { background: #e74c3c; }
+.legend .selected { background: #3498db; }
