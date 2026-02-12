@@ -1,5 +1,5 @@
 // CONFIGURAÇÃO: Insira sua URL NOVA AQUI
-const API_URL = 'AKfycbzEw6I2bALMsty6WXsSvY_7zcF8F9_f6dQSEyZz23S_5iJbwCD4suims_OWPy6o5cIdrg'; 
+const API_URL = 'AKfycbzRz_557n-SASD8w1JVFqCcViA4sWWld_u8-HPV6kfdQ1vc6zHAb5MTySmS-XohPx7TVA'; 
 
 // VALORES PADRÃO (FALLBACK DE SEGURANÇA)
 // Se a planilha falhar, o sistema usa estes dados para não travar
@@ -57,30 +57,37 @@ function setupDateRestrictions() {
 
 async function fetchData() {
     try {
-        const res = await fetch(`${API_URL}?t=${new Date().getTime()}`, { redirect: 'follow' });
+        // Adiciona um timestamp aleatório para EVITAR CACHE DO NAVEGADOR
+        const antiCache = new Date().getTime();
+        const res = await fetch(`${API_URL}?nocache=${antiCache}`, { redirect: 'follow' });
         const json = await res.json();
         
+        // Debug no Console (Aperte F12 para ver se chegou)
+        console.log("Dados recebidos:", json);
+
         if (json.reservations) allReservations = json.reservations;
         
-        // Lógica de Configuração com Fallback
+        // Prioridade total para a Planilha
         if (json.config && json.config.length > 0) {
             departmentRules = json.config;
+            console.log("Config carregada da Planilha:", departmentRules);
         } else {
-            // Se veio vazio, usa o padrão para não quebrar
-            if(departmentRules.length === 0) {
-                console.warn("Configuração vazia, usando padrão.");
-                departmentRules = DEFAULT_CONFIG;
-            }
+            console.warn("Config vazia vinda da planilha. Usando padrão.");
+            // Só usa padrão se a planilha falhar
+            if (departmentRules.length === 0) departmentRules = DEFAULT_CONFIG;
         }
         
         updateVisuals();
+        
+        // Remove texto de carregamento se existir
+        const loading = document.querySelector('.loading-text');
+        if(loading) loading.style.display = 'none';
+
     } catch (e) { 
-        console.error("Erro de conexão:", e);
-        // Em caso de erro total, também usa padrão
-        if(departmentRules.length === 0) {
-            departmentRules = DEFAULT_CONFIG;
-            renderDashboard();
-        }
+        console.error("Erro fatal:", e);
+        // Fallback de emergência
+        if(departmentRules.length === 0) departmentRules = DEFAULT_CONFIG;
+        renderDashboard();
     }
 }
 

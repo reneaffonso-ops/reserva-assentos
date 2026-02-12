@@ -8,14 +8,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <!-- CABEÇALHO -->
-        <div class="header-area">
-            <div class="logo-container">
-                <!-- Se tiver imagem, descomente a linha abaixo e ajuste o nome -->
-                <!-- <img src="logo.png" alt="Logo" class="site-logo"> -->
-                <div class="logo-placeholder">LOGO EMPRESA</div>
-            </div>
+    <div class="logo-container">
+    <!-- Tenta carregar o logo. Se falhar, mostra o texto. -->
+    <!-- IMPORTANTE: Verifique se o nome do arquivo abaixo é IDÊNTICO ao do GitHub -->
+    <img src="logo.png" alt="Reserva de Estações" class="site-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+    <div class="logo-placeholder" style="display: none; font-size: 1.5rem; font-weight: bold; color: #555;">LOGO</div>
+</div>
             <h1>Reserva de Estações</h1>
         </div>
 
