@@ -9,20 +9,16 @@
 </head>
 <body>
     <div class="container">
+        <!-- HEADER BANNER -->
+        <div class="header-area">
+            <div class="logo-container">
+                <img src="./banner.png" alt="Reserva de Estações" class="site-logo" 
+                     onerror="this.src='./logo.png'; this.onerror=function(){this.style.display='none'; document.querySelector('.logo-fallback').style.display='block';}">
+                <h1 class="logo-fallback" style="display:none; color:#2c3e50; margin-top:20px;">Reserva de Estações</h1>
+            </div>
+        </div>
 
-<!-- HEADER BANNER -->
-<div class="header-area">
-    <div class="logo-container">
-        <!-- Banner Full Width -->
-        <img src="./banner.png" alt="Reserva de Estações" class="site-logo" 
-             onerror="this.style.display='none'; document.querySelector('.logo-fallback').style.display='block';">
-        
-        <!-- Fallback em Texto (caso a imagem não carregue) -->
-        <h1 class="logo-fallback" style="display:none; color:#2c3e50; margin-top:20px;">Reserva de Estações</h1>
-    </div>
-</div>
-
-        <!-- PAINEL DE OCUPAÇÃO -->
+        <!-- PAINEL DE OCUPAÇÃO GERAL -->
         <div class="occupancy-panel">
             <h3>Taxa de Ocupação do Dia</h3>
             <div class="progress-container">
@@ -44,25 +40,14 @@
             </div>
         </div>
 
-<!-- TÍTULO CARDS -->
-<div class="section-title-container">
-    <h3 class="dashboard-title">Reservas/Slots por setor</h3>
-    <hr class="title-divider">
-</div>
-
-        <!-- DASHBOARD CARDS -->
-        <div id="dashboard-cards" class="dashboard-grid">
-            <p class="loading-text">Carregando setores...</p>
-        </div>
-
-        <!-- DATA -->
+        <!-- SELETOR DE DATA -->
         <div class="date-selector-container">
             <label>Data da Reserva:</label>
             <input type="date" id="reservation-date">
-            <p class="week-info" id="week-range-text">...</p>
+            <p class="week-info" id="week-range-text">Carregando calendário...</p>
         </div>
 
-        <!-- LEGENDA -->
+        <!-- LEGENDA DO MAPA -->
         <div class="instructions">
             <div class="legend">
                 <span class="available">Livre</span>
@@ -71,9 +56,9 @@
             </div>
         </div>
 
-        <!-- MAPA -->
+        <!-- ÁREAS / MAPA DE ASSENTOS -->
         <div class="section">
-            <h2>Aquário - Bancos</h2>
+            <h2>Aquário</h2>
             <div class="seating-area">
                 <div class="row" data-location="Aquario" data-row="1"><div class="seats"></div></div>
                 <div class="row" data-location="Aquario" data-row="2"><div class="seats"></div></div>
@@ -81,23 +66,38 @@
                 <div class="row" data-location="Aquario" data-row="4"><div class="seats"></div></div>
             </div>
         </div>
+
         <div class="section">
-            <h2>Salão - Áreas Operacionais</h2>
+            <h2>Salão</h2>
             <div class="seating-area">
                 <div class="row" data-location="Salao" data-row="1"><div class="seats"></div></div>
                 <div class="row" data-location="Salao" data-row="2"><div class="seats"></div></div>
                 <div class="row" data-location="Salao" data-row="3"><div class="seats"></div></div>
             </div>
         </div>
+
         <div class="section">
-            <h2>Gouvêa - Áreas de Suporte</h2>
+            <h2>Gouvêa</h2>
             <div class="seating-area">
                 <div class="row" data-location="Gouvea" data-row="1"><div class="seats"></div></div>
                 <div class="row" data-location="Gouvea" data-row="2"><div class="seats"></div></div>
             </div>
         </div>
 
-        <!-- MODAL -->
+        <!-- --- NOVA POSIÇÃO DO DASHBOARD DE CARDS --- -->
+        
+        <div class="section-title-container">
+            <h3 class="dashboard-title">Visão Geral dos Setores</h3>
+            <hr class="title-divider">
+        </div>
+
+        <div id="dashboard-cards" class="dashboard-grid">
+            <p class="loading-text">Carregando dados da equipe...</p>
+        </div>
+        
+        <!-- ------------------------------------------ -->
+
+        <!-- MODAL DE CONFIRMAÇÃO -->
         <div id="reservation-modal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
@@ -106,10 +106,12 @@
                 <form id="reservation-form">
                     <label>Nome Completo</label>
                     <input type="text" id="full-name" required placeholder="Digite seu nome">
+                    
                     <label>Setor</label>
                     <select id="department" required>
                         <option value="">Carregando...</option>
                     </select>
+                    
                     <button type="submit">Confirmar</button>
                 </form>
             </div>
