@@ -191,3 +191,19 @@ button:hover { background: #219150; }
     background: #e0e0e0; /* Linha cinza clara sutil */
     width: 100%;
 }
+
+/* Subtítulo das Áreas (Aquário, Salão, Gouvêa) */
+.section-subtitle {
+    font-size: 0.9rem;       /* Tamanho um pouco menor que o título */
+    color: #34495e;          /* Cinza escuro azulado */
+    font-weight: 500;        /* Peso médio */
+    margin-top: -10px;       /* Puxa para cima para ficar perto do H2 */
+    margin-bottom: 20px;     /* Espaço antes dos assentos */
+    padding-bottom: 5px;     /* Espaço interno */
+    border-bottom: 1px solid #ecf0f1; /* Linha divisória sutil, se desejar */
+}
+
+/* Ajuste fino no H2 para remover a borda antiga se usar o subtítulo */
+.section h2 {
+    border-bottom: none;     /* Remove a linha do H2 para não duplicar com a do subtítulo */
+    margin-bottom: 5px;      /* Reduz margem inferior */
