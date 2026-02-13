@@ -194,8 +194,8 @@ button:hover { background: #219150; }
 
 /* Subtítulo das Áreas (Aquário, Salão, Gouvêa) */
 .section-subtitle {
-    font-size: 0.9rem;       /* Tamanho um pouco menor que o título */
-    color: #34495e;          /* Cinza escuro azulado */
+    font-size: 0.7rem;       /* Tamanho um pouco menor que o título */
+    color: #7f8c8d;          /* Cinza */
     font-weight: 500;        /* Peso médio */
     margin-top: -10px;       /* Puxa para cima para ficar perto do H2 */
     margin-bottom: 20px;     /* Espaço antes dos assentos */
